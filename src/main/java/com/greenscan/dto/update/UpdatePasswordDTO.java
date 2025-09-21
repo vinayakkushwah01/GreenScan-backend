@@ -1,5 +1,9 @@
 package com.greenscan.dto.update;
 
-public class UpdatePasswordDTO {
+import lombok.Data;
 
+@Data
+public class UpdatePasswordDTO {
+    private String currentPassword;
+    private String newPassword;
 }

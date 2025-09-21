@@ -1,5 +1,6 @@
 package com.greenscan.dto.core;
 
+import com.greenscan.dto.base.BaseDTO;
 import com.greenscan.enums.UserRole;
 import lombok.Data;
 import lombok.EqualsAndHashCode;

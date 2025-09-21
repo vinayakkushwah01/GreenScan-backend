@@ -1,5 +1,12 @@
 package com.greenscan.dto.request;
 
-public class LoginRequestDTO {
+import lombok.Data;
 
+@Data
+public class LoginRequestDTO {
+    private String email;
+    private String password;
+    private String deviceId;
+    private String deviceType;
+    private String fcmToken;
 }
