@@ -9,4 +9,8 @@ public class ApiResponseDTO<T> {
     private T data;
     private String errorCode;
     private String errorDetails;
+    public static ApiResponseDTO<Object> error(String string) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'error'");
+    }
 }
