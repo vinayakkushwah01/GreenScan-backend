@@ -5,6 +5,10 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
@@ -17,6 +21,10 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Component
+// @AllArgsConstructor
+// @NoArgsConstructor
+// @Getter
+// @Setter
 public class JwtTokenProvider {
 
     @Value("${jwt.secret}")

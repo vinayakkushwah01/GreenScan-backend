@@ -36,8 +36,16 @@ public interface CartRepository extends JpaRepository<Cart, Long> {
     @Query("SELECT c FROM Cart c WHERE c.user.city = :city AND c.vendor IS NULL AND c.status = 'PENDING_VENDOR_ASSIGNMENT' AND c.isActive = true")
     List<Cart> findUnassignedCartsByCity(@Param("city") String city);
     
-    @Query("SELECT COUNT(c) FROM Cart c WHERE c.vendor.id = :vendorId AND c.status IN :statuses AND DATE(c.createdAt) = CURRENT_DATE")
-    long countTodayCartsByVendorAndStatuses(@Param("vendorId") Long vendorId, @Param("statuses") List<CartStatus> statuses);
+    // @Query("SELECT COUNT(c) FROM Cart c WHERE c.vendor.id = :vendorId AND c.status IN :statuses AND DATE(c.createdAt) = CURRENT_DATE" ,nativeQuery = true)
+    // long countTodayCartsByVendorAndStatuses(@Param("vendorId") Long vendorId, @Param("statuses") List<CartStatus> statuses);
+      @Query(
+        value = "SELECT COUNT(*) FROM cart WHERE vendor_id = :vendorId " +
+                "AND status IN (:statuses) " +
+                "AND DATE(created_at) = CURRENT_DATE", 
+        nativeQuery = true
+    )
+       long countTodayCartsByVendorAndStatuses(@Param("vendorId") Long vendorId, @Param("statuses") List<CartStatus> statuses);
+
     
     @Query("SELECT c FROM Cart c WHERE c.vendor.id = :vendorId AND c.status = 'PICKUP_REQUESTED' AND c.isActive = true ORDER BY c.pickupRequestedAt ASC")
     List<Cart> findPendingPickupsByVendor(@Param("vendorId") Long vendorId);
