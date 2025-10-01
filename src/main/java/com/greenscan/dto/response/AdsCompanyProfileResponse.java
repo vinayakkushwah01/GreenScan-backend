@@ -1,16 +1,15 @@
-package com.greenscan.dto.core;
+package com.greenscan.dto.response;
 
-import com.greenscan.dto.base.BaseDTO;
 import com.greenscan.enums.ApprovalStatus;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Data
-@EqualsAndHashCode(callSuper = true)
-public class AdsCompanyProfileDTO extends BaseDTO {
-    private UserDTO user;
+public class AdsCompanyProfileResponse {
+    private Long id;
+    private Long userId;
     private String companyName;
     private String businessRegistrationNumber;
     private String gstNumber;
@@ -19,9 +18,13 @@ public class AdsCompanyProfileDTO extends BaseDTO {
     private Long approvedByAdminId;
     private LocalDateTime approvedAt;
     private String rejectionReason;
+
+    // Financial
     private BigDecimal totalSpent;
     private BigDecimal walletBalance;
     private BigDecimal creditLimit;
+
+    // Statistics
     private Integer totalCampaigns;
     private Integer activeCampaigns;
     private Long totalImpressions;

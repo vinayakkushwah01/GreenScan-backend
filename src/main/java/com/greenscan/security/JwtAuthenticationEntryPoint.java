@@ -1,7 +1,7 @@
 package com.greenscan.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.greenscan.dto.response.ApiResponseDTO;
+import com.greenscan.dto.response.ApiResponse;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -29,7 +29,7 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
         httpServletResponse.setContentType(MediaType.APPLICATION_JSON_VALUE);
 
        // ApiResponseDto <Object> response = ApiResponseDTO.error("Unauthorized access - Invalid or expired token");
-        ApiResponseDTO <Object> response = ApiResponseDTO.error("Unauthorized access - Invalid or expired token");
+        ApiResponse <Object> response = ApiResponse.error("Unauthorized access - Invalid or expired token");
         String jsonResponse = objectMapper.writeValueAsString(response);
         httpServletResponse.getWriter().write(jsonResponse);
     }
