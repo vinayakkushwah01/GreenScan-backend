@@ -1,6 +1,7 @@
 package com.greenscan.service.impl;
 
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -15,6 +16,7 @@ import com.greenscan.dto.response.UserResponse;
 import com.greenscan.entity.MainUser;
 import com.greenscan.enums.UserRole;
 import com.greenscan.exception.custom.EmailAlreadyExistsException;
+import com.greenscan.exception.custom.MobileAlreadyExistsException;
 import com.greenscan.repository.MainUserRepository;
 import com.greenscan.security.JwtTokenProvider;
 import com.greenscan.security.UserPrincipal;
@@ -36,34 +38,37 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public AuthResponse login(LoginRequest request) {
 
-         Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.getEmail(),
-                        request.getPassword()
-                )
-        );
+        try{
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            request.getEmail(),
+                            request.getPassword()
+                    )
+            );
 
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        
-        // 3. Generate the JWT tokens
-        String accessToken = tokenProvider.generateToken(authentication);
-        String refreshToken = tokenProvider.generateRefreshToken(authentication);
-        
-        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
-        Long accessTokenExpirationInMs = tokenProvider.getExpirationDateFromJWT(accessToken).getTime() - System.currentTimeMillis();
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+            
+            // 3. Generate the JWT tokens
+            String accessToken = tokenProvider.generateToken(authentication);
+            String refreshToken = tokenProvider.generateRefreshToken(authentication);
+            
+            UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+            Long accessTokenExpirationInMs = tokenProvider.getExpirationDateFromJWT(accessToken).getTime() - System.currentTimeMillis();
 
-        //  return new AuthResponse(
-        //         accessToken,
-        //         refreshToken,
-        //         "Bearer",
-        //         accessTokenExpirationInMs,
+        UserResponse u = UserResponse.fromMainUser(mainUserRepository.findByEmailAndIsActiveTrue(userPrincipal.getEmail()).get());
+            return new AuthResponse(
+                    accessToken,
+                    refreshToken,
+                    "Bearer",
+                    accessTokenExpirationInMs,
+                    u  
+            );
+        } catch (BadCredentialsException ex) {
                 
-        //        //UserResponse.fromMainUser( mainUserRepository.findByEmailAndIsActiveTrue(request.getEmail()).get())
-        // );
-
-        System.out.println("user found with emial :-"+ userPrincipal.getEmail());
-        
-        return null;
+                throw new BadCredentialsException("Invalid email or password");
+            }
+    
+        // return null;
 
     }
 
@@ -74,6 +79,11 @@ public class AuthServiceImpl implements AuthService {
         if (mainUserRepository.findByEmailAndIsActiveTrue(request.getEmail()).isPresent()) {
             log.warn("Registration failed: Email already exists - {}", request.getEmail());
             throw new EmailAlreadyExistsException(request.getEmail());
+        }
+        //check if mobile alredy exuist 
+         if (mainUserRepository.findByMobileAndIsActiveTrue(request.getMobile()).isPresent()) {
+        log.warn("Registration failed: Mobile already exists - {}", request.getMobile());
+        throw new MobileAlreadyExistsException(request.getMobile());
         }
 
         // 2. Map DTO to Entity and Encrypt Password
@@ -119,9 +129,16 @@ public class AuthServiceImpl implements AuthService {
 
         // Calculate expiration time for the response
         Long accessTokenExpirationInMs = tokenProvider.getExpirationDateFromJWT(accessToken).getTime() - System.currentTimeMillis();
-        System.out.println("user found with emial :-"+ request.getEmail());
+       // System.out.println("user found with emial :-"+ request.getEmail());
 
-        return null;
+       UserResponse u = UserResponse.fromMainUser(mainUserRepository.findByEmailAndIsActiveTrue(request.getEmail()).get());
+         return new AuthResponse(
+                accessToken,
+                refreshToken,
+                "Bearer",
+                accessTokenExpirationInMs,
+                u  
+        );
     }
 
     @Override
