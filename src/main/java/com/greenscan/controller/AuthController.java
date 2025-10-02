@@ -1,9 +1,10 @@
 package com.greenscan.controller;
 
+import com.greenscan.dto.request.CompleteProfileRequest;
 import com.greenscan.dto.request.LoginRequest;
 import com.greenscan.dto.request.RegisterRequest;
 import com.greenscan.dto.response.AuthResponse;
-
+import com.greenscan.dto.response.UserResponse;
 import com.greenscan.service.impl.AuthServiceImpl;
 
 import lombok.RequiredArgsConstructor;
@@ -58,5 +59,17 @@ public class AuthController {
         
         // Login is a success action, so we return HTTP 200 OK.
         return ResponseEntity.ok(authResponse);
+    }
+    @PostMapping("/register/complete/{id}")
+    public ResponseEntity<UserResponse> completeProfile(@PathVariable  Long id, @RequestBody CompleteProfileRequest request){
+        log.info("Received Complete profile  request for id: {}", id);
+       UserResponse res =  authService.completeProfile(id, request);
+       return ResponseEntity.ok(res);
+
+    }
+      @PostMapping("/refresh")
+    public ResponseEntity<AuthResponse> refreshToken(@RequestParam("refreshToken") String refreshToken) {
+        AuthResponse response = authService.refreshToken(refreshToken);
+        return ResponseEntity.ok(response);
     }
 }
