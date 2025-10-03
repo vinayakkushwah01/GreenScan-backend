@@ -225,9 +225,14 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public void changePassword(Long userId, String oldPassword, String newPassword) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'changePassword'");
+    public String  changePassword(Long userId, String oldPassword, String newPassword) {
+       MainUser mainUser = mainUserRepository.findById(userId).orElseThrow(() -> new UsernameNotFoundException("User not found with id: " + userId));
+         if(!passwordEncoder.matches(oldPassword, mainUser.getPassword())){
+            throw new BadCredentialsException("Old password is incorrect");
+         }
+         mainUser.setPassword(passwordEncoder.encode(newPassword));
+        mainUserRepository.save(mainUser);
+        return"Password change succesfully";
     }
 
     @Override

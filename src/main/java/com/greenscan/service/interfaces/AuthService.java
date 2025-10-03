@@ -12,7 +12,7 @@ public interface AuthService {
     UserResponse completeProfile(Long userId, CompleteProfileRequest request);
     AuthResponse refreshToken(String refreshToken);
     void logout(Long userId);
-    void changePassword(Long userId, String oldPassword, String newPassword);
+    String changePassword(Long userId, String oldPassword, String newPassword);
     void forgotPassword(String email);
     void resetPassword(String token, String newPassword);
 }

@@ -9,8 +9,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.greenscan.dto.request.ChangePasswordRequest;
 import com.greenscan.dto.request.CompleteProfileRequest;
 import com.greenscan.dto.response.AuthResponse;
+import com.greenscan.dto.response.StringResponse;
 import com.greenscan.dto.response.UserResponse;
 import com.greenscan.service.impl.AuthServiceImpl;
 
@@ -36,5 +38,11 @@ public class PostAuthController {
     public ResponseEntity<AuthResponse> refreshToken(@RequestParam("refreshToken") String refreshToken) {
         AuthResponse response = authService.refreshToken(refreshToken);
         return ResponseEntity.ok(response);
+    }
+    @PostMapping("/changePassword/{id}")
+    public ResponseEntity<StringResponse> changePassword(@PathVariable Long id, @RequestBody ChangePasswordRequest request){
+        log.info("Received change password request for id: {}", id);
+       String response = authService.changePassword(id, request.getOldPassword(), request.getNewPassword());
+       return ResponseEntity.ok(new StringResponse(response));
     }
 }
