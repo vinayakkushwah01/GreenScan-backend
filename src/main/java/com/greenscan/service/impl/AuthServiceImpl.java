@@ -39,11 +39,10 @@ import lombok.extern.slf4j.Slf4j;
 public class AuthServiceImpl implements AuthService {
 
     private final MainUserRepository mainUserRepository;
-     private final AuthenticationManager authenticationManager;
-     private final JwtTokenProvider tokenProvider;
-      private final PasswordEncoder passwordEncoder;
-
-      private final UserDetailsServiceImpl userDetailsServiceImpl;
+    private final AuthenticationManager authenticationManager;
+    private final JwtTokenProvider tokenProvider;
+    private final PasswordEncoder passwordEncoder;
+    private final UserDetailsServiceImpl userDetailsServiceImpl;
 
 
     @Override

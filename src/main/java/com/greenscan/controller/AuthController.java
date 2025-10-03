@@ -53,23 +53,9 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> authenticateUser(@Valid @RequestBody LoginRequest request) {
         log.info("Received login request for email: {}", request.getEmail());
-        
-        // Delegate login and token generation to the service layer.
         AuthResponse authResponse = authService.login(request);
-        
-        // Login is a success action, so we return HTTP 200 OK.
+
         return ResponseEntity.ok(authResponse);
     }
-    @PostMapping("/register/complete/{id}")
-    public ResponseEntity<UserResponse> completeProfile(@PathVariable  Long id, @RequestBody CompleteProfileRequest request){
-        log.info("Received Complete profile  request for id: {}", id);
-       UserResponse res =  authService.completeProfile(id, request);
-       return ResponseEntity.ok(res);
-
-    }
-      @PostMapping("/refresh")
-    public ResponseEntity<AuthResponse> refreshToken(@RequestParam("refreshToken") String refreshToken) {
-        AuthResponse response = authService.refreshToken(refreshToken);
-        return ResponseEntity.ok(response);
-    }
+   
 }
