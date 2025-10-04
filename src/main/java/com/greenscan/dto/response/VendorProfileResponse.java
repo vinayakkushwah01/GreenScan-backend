@@ -18,7 +18,7 @@ public class VendorProfileResponse {
     private BigDecimal averageRating;
     private Integer totalPickupsCompleted;
     private BigDecimal totalWeightCollectedKg;
-    private MainUser user;
+    private UserResponse user;
     private String vendorId;
     private String address;
     private Double latitude;
@@ -52,7 +52,7 @@ public class VendorProfileResponse {
         response.setTotalWeightCollectedKg(vendor.getTotalWeightCollectedKg());
 
         // User Info
-        response.setUser(user);
+        response.setUser(UserResponse.fromMainUser(user));
         response.setVendorId(vendor.getId() != null ? vendor.getId().toString() : null);
 
         // Additional fields from MainUser (assuming MainUser has these fields)

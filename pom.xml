@@ -82,6 +82,20 @@
             <version>${jwt.version}</version>
             <scope>runtime</scope>
         </dependency>
+<!-- https://mvnrepository.com/artifact/io.supabase/supabase-storage-java -->
+        <!-- <dependency>
+            <groupId>io.supabase</groupId>
+            <artifactId>supabase-storage-java</artifactId>
+            <version>1.0.1</version>
+        </dependency> -->
+
+        <dependency>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>okhttp</artifactId>
+            <version>4.12.0</version>
+        </dependency>
+
+
         
         <!-- Cloudinary -->
         <!-- <dependency>

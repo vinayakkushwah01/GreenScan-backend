@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.greenscan.dto.response.ApiResponse;
+import com.greenscan.exception.custom.DuplicateResourceException;
 import com.greenscan.exception.custom.EmailAlreadyExistsException;
 import com.greenscan.exception.custom.MobileAlreadyExistsException;
 
@@ -58,5 +59,18 @@ public class GlobalExceptionHandler {
         });
 
         return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
+    }
+
+
+     @ExceptionHandler(DuplicateResourceException.class)
+    public ResponseEntity<Object> handleDuplicateResourceException(DuplicateResourceException ex) {
+        
+        HttpStatus status = HttpStatus.CONFLICT; 
+        Map<String, Object> body = new HashMap<>();
+        body.put("timestamp", LocalDateTime.now());
+        body.put("status", status.value());
+        body.put("error", "Conflict");
+        body.put("message", ex.getMessage()); 
+        return new ResponseEntity<>(body, status);
     }
 }
