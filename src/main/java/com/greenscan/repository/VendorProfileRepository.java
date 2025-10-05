@@ -30,4 +30,5 @@ public interface VendorProfileRepository extends JpaRepository<VendorProfile, Lo
     List<VendorProfile> findVendorsWithinRadius(@Param("latitude") Double latitude, @Param("longitude") Double longitude);
     
     long countByApprovalStatusAndIsActiveTrue(ApprovalStatus status);
+    Optional<VendorProfile> findByUserId(Long mainUserId);
 }

@@ -1,29 +1,45 @@
-package com.greenscan.enums;
+package com.greenscan.dto.request;
 
 import java.math.BigDecimal;
+import java.time.LocalTime;
+import java.util.List;
 import java.util.stream.Collectors;
 
-import com.greenscan.dto.request.VendorProfileRequest;
 import com.greenscan.entity.MainUser;
 import com.greenscan.entity.VendorProfile;
+import com.greenscan.enums.ApprovalStatus;
 
-public enum ApprovalStatus {
-    PENDING("Pending"),
-    APPROVED("Approved"),
-    REJECTED("Rejected"),
-    SUSPENDED("Suspended");
+import lombok.Data;
+@Data
+public class VendorProfileRequest {
+    private Long mainUserId; // ID of the MainUser associated with this vendor
+    private String email; // for convenience, to identify user if needed
+    private String businessName;
 
-    private final String displayName;
+    // Optional (user may provide, else defaults in entity will be used)
+    private String businessRegistrationNumber;
+    private String gstNumber;
+    private String panNumber;
 
-    ApprovalStatus(String displayName) {
-        this.displayName = displayName;
-    }
+    private String serviceCities; // comma-separated string OR
+    private List<String> serviceCitiesList; // alt for cleaner API
 
-    public String getDisplayName() {
-        return displayName;
-    }
+    private Integer serviceRadiusKm;
+
+    private LocalTime workingStartTime;
+    private LocalTime workingEndTime;
+    private List<String> workingDays;
+
+    private Integer dailyPickupCapacity;
+    private BigDecimal maxWeightPerPickupKg;
+
+    // private BigDecimal platformCommissionRate;
+    private BigDecimal paymentLimit;
 
 
+
+
+    
      public static VendorProfile toEntity(VendorProfileRequest request, MainUser user) {
         VendorProfile entity = new VendorProfile();
 

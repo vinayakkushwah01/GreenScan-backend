@@ -12,5 +12,7 @@ public class EndUserProfileResponse {
     private BigDecimal totalWasteRecycledKg;
     private Integer totalCartsCompleted;
     private Integer ecoScore;
-    private String referralCode;
+    private UserResponse user;
+  
+
 }

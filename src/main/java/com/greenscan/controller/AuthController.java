@@ -1,9 +1,10 @@
 package com.greenscan.controller;
 
+import com.greenscan.dto.request.CompleteProfileRequest;
 import com.greenscan.dto.request.LoginRequest;
 import com.greenscan.dto.request.RegisterRequest;
 import com.greenscan.dto.response.AuthResponse;
-
+import com.greenscan.dto.response.UserResponse;
 import com.greenscan.service.impl.AuthServiceImpl;
 
 import lombok.RequiredArgsConstructor;
@@ -52,11 +53,9 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> authenticateUser(@Valid @RequestBody LoginRequest request) {
         log.info("Received login request for email: {}", request.getEmail());
-        
-        // Delegate login and token generation to the service layer.
         AuthResponse authResponse = authService.login(request);
-        
-        // Login is a success action, so we return HTTP 200 OK.
+
         return ResponseEntity.ok(authResponse);
     }
+   
 }

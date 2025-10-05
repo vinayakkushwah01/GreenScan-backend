@@ -1,5 +1,7 @@
 package com.greenscan.dto.request;
 
+import com.greenscan.entity.MainUser;
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
@@ -30,4 +32,18 @@ public class CompleteProfileRequest {
     
     private Double latitude;
     private Double longitude;
+
+    public static MainUser updateUserFromRequest(MainUser user, CompleteProfileRequest request) {
+    user.setName(request.getName());
+    user.setMobile(request.getMobile());
+    user.setAddressLine1(request.getAddressLine1());
+    user.setAddressLine2(request.getAddressLine2());
+    user.setCity(request.getCity());
+    user.setState(request.getState());
+    user.setPincode(request.getPincode());
+    user.setLatitude(request.getLatitude());
+    user.setLongitude(request.getLongitude());
+    user.setLocationUpdatedAt(java.time.LocalDateTime.now());
+    return user;
+}
 }

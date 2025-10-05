@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -102,8 +103,10 @@ public class VendorProfile extends BaseEntity {
     private Integer totalRatings = 0;
 
     // KYC Documents
-    @Column(name = "kyc_document_urls", columnDefinition = "TEXT")
-    private String kycDocumentUrls; // JSON array of document URLs
+   
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JoinColumn(name = "vendor_id") // foreign key in CloudinaryFile table
+    private List<CloudinaryFile> kycFiles;
 
     @Column(name = "kyc_verified")
     private Boolean kycVerified = false;
@@ -113,6 +116,7 @@ public class VendorProfile extends BaseEntity {
 
     @OneToMany(mappedBy = "vendor", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<PickupAssistant> assistants = new ArrayList<>();
+
 
     // Helper methods
     public boolean canAcceptMorePickups() {
