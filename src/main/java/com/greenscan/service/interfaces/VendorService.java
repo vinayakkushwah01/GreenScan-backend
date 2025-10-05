@@ -2,7 +2,10 @@ package com.greenscan.service.interfaces;
 
 import java.util.List;
 
+import org.springframework.web.multipart.MultipartFile;
+
 import com.greenscan.dto.request.VendorProfileRequest;
+import com.greenscan.dto.response.CloudinaryResponse;
 import com.greenscan.dto.response.VendorProfileResponse;
 
 public interface VendorService {
@@ -14,5 +17,6 @@ public interface VendorService {
     public List<VendorProfileResponse> searchVendorsByName(String name);
     public List<VendorProfileResponse> filterVendorsByLocation( Double latitude, Double longitude, Double radiusKm);
     VendorProfileResponse createVendorProfile(VendorProfileRequest request);
+    String uploadKycDocument(MultipartFile file , Long mainUserId);
 
 }

@@ -7,6 +7,7 @@ import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import com.greenscan.dto.response.ApiResponse;
 import com.greenscan.exception.custom.DuplicateResourceException;
 import com.greenscan.exception.custom.EmailAlreadyExistsException;
+import com.greenscan.exception.custom.FileUploadException;
 import com.greenscan.exception.custom.MobileAlreadyExistsException;
 
 @RestControllerAdvice
@@ -73,4 +75,16 @@ public class GlobalExceptionHandler {
         body.put("message", ex.getMessage()); 
         return new ResponseEntity<>(body, status);
     }
+
+    @ExceptionHandler(FileUploadException.class)
+public ResponseEntity<Map<String, Object>> handleFileUploadException(FileUploadException ex) {
+    HttpStatus status =HttpStatus.BAD_REQUEST;
+    Map<String, Object> body = new HashMap<>();
+        body.put("status", HttpStatus.BAD_REQUEST.value());
+        body.put("message", ex.getMessage()); // includes the file name
+        body.put("timestamp", System.currentTimeMillis());
+        return new ResponseEntity<>(body, status);
+    }
+
+
 }

@@ -1,12 +1,15 @@
 package com.greenscan.service.impl;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.greenscan.dto.request.VendorProfileRequest;
 import com.greenscan.dto.response.VendorProfileResponse;
+import com.greenscan.entity.CloudinaryFile;
 import com.greenscan.entity.MainUser;
 import com.greenscan.entity.VendorProfile;
 import com.greenscan.exception.custom.DuplicateResourceException;
@@ -21,6 +24,8 @@ public class VendorProfileServiceImpl implements VendorService {
     private  MainUserRepository mainUserRepository;
     @Autowired
     private VendorProfileRepository vendorProfileRepository;
+    @Autowired
+    private  CloudinaryService cloudinaryService;
 
     @Override
     public VendorProfileResponse getVendorProfile(String vendorId) {
@@ -62,5 +67,35 @@ public class VendorProfileServiceImpl implements VendorService {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'filterVendorsByLocation'");
     }
+
+@Override
+public String uploadKycDocument(MultipartFile file, Long mainUserId) {
+    // Find the vendor profile
+    VendorProfile vendorProfile = vendorProfileRepository.findByUserId(mainUserId)
+            .orElseThrow(() -> new RuntimeException(
+                    "Vendor profile not found for user ID: " + mainUserId));
+
+    String name = vendorProfile.getId() + "_" + file.getOriginalFilename() + "_"
+            + (vendorProfile.getKycFiles() != null ? vendorProfile.getKycFiles().size() : 0);
+
+    try {
+        CloudinaryFile c = cloudinaryService.uploadFile(file, name);
+
+        if (vendorProfile.getKycFiles() == null) {
+            vendorProfile.setKycFiles(new ArrayList<>());
+        }
+
+        // Add the uploaded file to vendor's KYC files
+        vendorProfile.getKycFiles().add(c);
+        vendorProfileRepository.save(vendorProfile);
+        return "File uploaded successfully for : "+vendorProfile.getId();
+
+    } catch (IOException e) {
+        
+        throw new RuntimeException("Error in uploading file: " + file.getOriginalFilename(), e);
+    }
+}
+
+     
    
 }
