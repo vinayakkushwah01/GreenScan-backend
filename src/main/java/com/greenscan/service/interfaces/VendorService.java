@@ -5,7 +5,7 @@ import java.util.List;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.greenscan.dto.request.VendorProfileRequest;
-import com.greenscan.dto.response.CloudinaryResponse;
+
 import com.greenscan.dto.response.VendorProfileResponse;
 
 public interface VendorService {

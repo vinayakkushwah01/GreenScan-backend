@@ -94,6 +94,9 @@ public String uploadKycDocument(MultipartFile file, Long mainUserId) {
         
         throw new RuntimeException("Error in uploading file: " + file.getOriginalFilename(), e);
     }
+    catch (Exception e) {
+        throw new RuntimeException("Error in uploading or encrypting file: " + file.getOriginalFilename(), e);
+    }
 }
 
      

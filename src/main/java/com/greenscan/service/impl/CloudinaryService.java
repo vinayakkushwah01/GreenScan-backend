@@ -156,6 +156,8 @@ public class CloudinaryService {
 
     private final Cloudinary cloudinary;
     private CloudinaryFileRepository cloudinaryFileRepository;
+    @Autowired
+    private FileEncryptor fileEncryptor;
 
     @Autowired
     public CloudinaryService(Cloudinary cloudinary, CloudinaryFileRepository cloudinaryFileRepository) {
@@ -164,15 +166,20 @@ public class CloudinaryService {
     }
 
  
-    public CloudinaryFile uploadFile(MultipartFile file, String fileName) throws IOException {
-        Map uploadResult = cloudinary.uploader().upload(file.getBytes(),
+    public CloudinaryFile uploadFile(MultipartFile file, String fileName) throws Exception {
+        byte[] encryptedBytes = fileEncryptor.encrypt(file.getBytes());
+           // encryptedBytes = FileEncryptor.encrypt(file.getBytes());
+      
+        Map uploadResult = cloudinary.uploader().upload(encryptedBytes,
         ObjectUtils.asMap(
                 "public_id", fileName,        // custom public ID
                 "resource_type", "auto",      // supports all file types
                 "use_filename", true,         // preserve original filename
                 "unique_filename", false,     // avoid Cloudinary renaming
                 "overwrite", true,            // overwrite if same public_id exists
-                "invalidate", true            // invalidate CDN cache
+                "invalidate", true ,
+                "folder", "kyc_docs" ,
+                "access_mode", "authenticated"           // invalidate CDN cache
         ));
 
         CloudinaryFile cloudinaryFile = new CloudinaryFile();
@@ -187,11 +194,15 @@ public class CloudinaryService {
         //return cloudinaryFile;
     }
 
-    public byte[] getFile(CloudinaryFile cloudinaryFile) throws IOException {
-        URL fileUrl = new URL(cloudinaryFile.getUrl());
+    public byte[] getFile(CloudinaryFile cloudinaryFile) throws Exception {
+         URL fileUrl = new URL(cloudinaryFile.getUrl());
         try (var in = fileUrl.openStream()) {
-            return in.readAllBytes();
+            byte[] encryptedBytes = in.readAllBytes();
+            return fileEncryptor.decrypt(encryptedBytes);
+        } catch (Exception e) {
+            throw new RuntimeException("Error retrieving or decrypting file", e);
         }
+
     }
 }
 
