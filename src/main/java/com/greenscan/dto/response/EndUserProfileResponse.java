@@ -13,6 +13,7 @@ public class EndUserProfileResponse {
     private Integer totalCartsCompleted;
     private Integer ecoScore;
     private UserResponse user;
+    private String profileImageUrl;
   
 
 }

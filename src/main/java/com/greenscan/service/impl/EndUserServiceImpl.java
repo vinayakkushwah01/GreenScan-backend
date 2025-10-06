@@ -1,9 +1,11 @@
 package com.greenscan.service.impl;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
+import com.greenscan.dto.request.EndUserProfileRequest;
 import com.greenscan.dto.response.EndUserProfileResponse;
 import com.greenscan.entity.EndUserProfile;
 import com.greenscan.entity.MainUser;
@@ -11,6 +13,7 @@ import com.greenscan.exception.custom.ResourceNotFoundException;
 import com.greenscan.repository.EndUserProfileRepository;
 import com.greenscan.repository.MainUserRepository;
 import com.greenscan.service.interfaces.EndUserService;
+import java.io.File;
 
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -26,19 +29,12 @@ public class EndUserServiceImpl implements EndUserService {
     private final MainUserRepository mainUserRepository;
     @Override
     @Transactional(readOnly = true)
-    public EndUserProfileResponse getEndUserProfile(String userId) {
+    public EndUserProfileResponse getEndUserProfile(Long userId) {
         log.info("Fetching end user profile for userId: {}", userId);
         
-        Long id;
-        try {
-            id = Long.parseLong(userId);
-        } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("Invalid user ID format: " + userId);
-        }
-        
-        MainUser mainUser = mainUserRepository.findByIdAndIsActiveTrue(id)
-            .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
-        
+        MainUser mainUser = mainUserRepository.findByIdAndIsActiveTrue(userId)
+            .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
+       
         return getEndUserProfile(mainUser);
     }
 
@@ -82,36 +78,40 @@ public class EndUserServiceImpl implements EndUserService {
         return mapToResponse(savedProfile);
     }
 
-    //  @Override
-    // @Transactional
-    // public EndUserProfileResponse updateEndUserProfile(Long userId, EndUserProfileResponse profileData) {
-    //     log.info("Updating end user profile for userId: {}", userId);
+     @Override
+    @Transactional
+    public EndUserProfileResponse updateEndUserProfile(Long userId, EndUserProfileRequest profileData) {
+        log.info("Updating end user profile for userId: {}", userId);
+        // re implement this method  
+
+
+        // EndUserProfile profile = endUserProfileRepository.findByUserIdAndIsActiveTrue(userId)
+        //     .orElseThrow(() -> new ResourceNotFoundException("EndUserProfile", "userId", userId));
         
-    //     EndUserProfile profile = endUserProfileRepository.findByUserIdAndIsActiveTrue(userId)
-    //         .orElseThrow(() -> new ResourceNotFoundException("EndUserProfile", "userId", userId));
+        // // Update only non-null fields from profileData
+        // if (profileData.getPreferredPickupTime() != null) {
+        //     profile.setPreferredPickupTime(profileData.getPreferredPickupTime());
+        // }
         
-    //     // Update only non-null fields from profileData
-    //     if (profileData.getPreferredPickupTime() != null) {
-    //         profile.setPreferredPickupTime(profileData.getPreferredPickupTime());
-    //     }
+        // EndUserProfile updatedProfile = endUserProfileRepository.save(profile);
+        // log.info("Successfully updated end user profile for userId: {}", userId);
         
-    //     EndUserProfile updatedProfile = endUserProfileRepository.save(profile);
-    //     log.info("Successfully updated end user profile for userId: {}", userId);
-        
-    //     return mapToResponse(updatedProfile);
-    // }
+        // return mapToResponse(updatedProfile);
+        return null;
+
+    }
     
-    // @Override
-    // public String generateReferralCode(Long userId) {
-    //     String baseCode = "GS" + userId + UUID.randomUUID().toString().substring(0, 6).toUpperCase();
+
+    public String generateReferralCode(Long userId) {
+        String baseCode = "GS" + userId + UUID.randomUUID().toString().substring(0, 6).toUpperCase();
         
-    //     // Ensure uniqueness
-    //     while (endUserProfileRepository.findByReferralCodeAndIsActiveTrue(baseCode).isPresent()) {
-    //         baseCode = "GS" + userId + UUID.randomUUID().toString().substring(0, 6).toUpperCase();
-    //     }
+        // Ensure uniqueness
+        while (endUserProfileRepository.findByReferralCodeAndIsActiveTrue(baseCode).isPresent()) {
+            baseCode = "GS" + userId + UUID.randomUUID().toString().substring(0, 6).toUpperCase();
+        }
         
-    //     return baseCode;
-    // }
+        return baseCode;
+    }
     
     /**
      * Map EndUserProfile entity to EndUserProfileResponse DTO
@@ -127,6 +127,21 @@ public class EndUserServiceImpl implements EndUserService {
         response.setEcoScore(profile.getEcoScore());
        // response.setReferralCode(profile.getReferralCode());
         return response;
+    }
+
+    @Override
+    public String uploadProfileImg(Long id, File file) {
+        //here you have to use supabase storage service to upload the file and store the url in the database
+        // the file name must be the userID+UserName_profileImg.extension
+        throw new UnsupportedOperationException("Unimplemented method 'uploadProfileImg'");
+    }
+
+    @Override
+    public String updateProfileImg(Long id, File file) {
+        // first remove the old image from the storage
+         //here you have to use supabase storage service to upload the file and store the url in the database
+        // the file name must be the userID+UserName_profileImg.extension
+        throw new UnsupportedOperationException("Unimplemented method 'updateProfileImg'");
     }
     
 }
