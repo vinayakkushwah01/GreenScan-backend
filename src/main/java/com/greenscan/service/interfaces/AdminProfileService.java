@@ -18,12 +18,12 @@ public interface AdminProfileService {
     Page<VendorProfileAdminViewResponse> getPendingVendorsProfiles(int page);
     public VendorProfileAdminViewResponse getVendorById(Long vendorId);
     String approveVendorProfile(Long vendorId , Long adminId);
-    String rejectVendorProfile(Long vendorId , String reason);
+    String rejectVendorProfile(Long vendorId , String reason , Long adminId);
     String blockVendorsProfile(Long vendorId , String reason);
     String unblockVendorsProfile(Long vendorId , String reason);
-    List<VendorProfile> getAllVendorsProfiles();
-    // List<VendorProfile> getAllBlockedVendorsProfiles();
-    // List<VendorProfile> getAllRejectedVendorsProfiles();
+    List<VendorProfileAdminViewResponse> getAllVendorsProfiles();
+    List<VendorProfile> getAllBlockedVendorsProfiles();
+    List<VendorProfile> getAllRejectedVendorsProfiles();
 
 
     //get pending profile approval of NGOs

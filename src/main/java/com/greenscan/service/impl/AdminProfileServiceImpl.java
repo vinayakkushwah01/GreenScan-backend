@@ -50,10 +50,6 @@ public class AdminProfileServiceImpl implements AdminProfileService {
         return dto;
     }
 
-
-
-
-    
     @Override
     public Page<VendorProfileAdminViewResponse> getPendingVendorsProfiles(int page ) {
          Pageable pageable = PageRequest.of(page, 20);
@@ -82,27 +78,60 @@ public class AdminProfileServiceImpl implements AdminProfileService {
     }
 
     @Override
-    public String rejectVendorProfile(Long vendorId, String reason) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'rejectVendorProfile'");
+    public String rejectVendorProfile(Long vendorId, String reason ,Long adminId) {
+        VendorProfile vendor = vendorProfileRepository.findById(vendorId)
+                .orElseThrow(() -> new ResourceNotFoundException("VendorProfile", "id", vendorId));
+        vendor.setApprovalStatus(ApprovalStatus.REJECTED);
+        vendor.setIsActive(false);
+        vendor.setRejectionReason(reason);
+        vendor.setApprovedByAdminId(adminId);
+        vendor.setKycVerified(false);
+        vendorProfileRepository.save(vendor);
+        return "Vendor profile rejected successfully";
+       
     }
 
     @Override
     public String blockVendorsProfile(Long vendorId, String reason) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'blockVendorsProfile'");
+        VendorProfile vendor = vendorProfileRepository.findById(vendorId)
+                .orElseThrow(() -> new ResourceNotFoundException("VendorProfile", "id", vendorId));
+        vendor.setApprovalStatus(ApprovalStatus.SUSPENDED);
+        vendor.setIsActive(false);
+        vendor.setRejectionReason(reason);
+        vendorProfileRepository.save(vendor);
+        return "Vendor profile blocked successfully";
     }
+
 
     @Override
     public String unblockVendorsProfile(Long vendorId, String reason) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'unblockVendorsProfile'");
+        VendorProfile vendor = vendorProfileRepository.findById(vendorId)
+                .orElseThrow(() -> new ResourceNotFoundException("VendorProfile", "id", vendorId));
+        vendor.setApprovalStatus(ApprovalStatus.PENDING);
+        vendor.setIsActive(true);
+        vendor.setRejectionReason("Unblocked: " + reason);
+        vendorProfileRepository.save(vendor);
+        return "Vendor profile unblocked successfully";
     }
 
     @Override
-    public List<VendorProfile> getAllVendorsProfiles() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getAllVendorsProfiles'");
+    public List<VendorProfileAdminViewResponse> getAllVendorsProfiles() {
+
+        return vendorProfileRepository.findAll().stream()
+                .map(VendorProfileAdminViewResponse::new)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<VendorProfile> getAllBlockedVendorsProfiles() {
+        return (List<VendorProfile>) vendorProfileRepository.findByIsActive(false).get();
+       
+    }
+
+    @Override
+    public List<VendorProfile> getAllRejectedVendorsProfiles() {
+        return (List<VendorProfile>) vendorProfileRepository.findByApprovalStatusAndIsActiveTrue(ApprovalStatus.REJECTED, Pageable.unpaged()).getContent();
+       
     }
     
 }

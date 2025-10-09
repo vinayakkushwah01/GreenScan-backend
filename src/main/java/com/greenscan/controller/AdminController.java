@@ -1,5 +1,7 @@
 package com.greenscan.controller;
 
+import java.util.List;
+
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -47,6 +49,56 @@ public class AdminController {
 
         String message = adminProfileService.approveVendorProfile(vendorId, adminId);
         return ResponseEntity.ok(message);
+    }
+
+     // Get all vendor profiles
+    @GetMapping("/vendors")
+    public ResponseEntity<List<VendorProfileAdminViewResponse>> getAllVendors() {
+        List<VendorProfileAdminViewResponse> vendors = adminProfileService.getAllVendorsProfiles();
+        return ResponseEntity.ok(vendors);
+    }
+
+    // Reject vendor profile
+    @PostMapping("/v/{id}/reject")
+    public ResponseEntity<String> rejectVendorProfile(
+            @PathVariable("id") Long vendorId,
+            @RequestParam("reason") String reason,
+            @RequestParam("adminId") Long adminId) {
+
+        String message = adminProfileService.rejectVendorProfile(vendorId, reason, adminId);
+        return ResponseEntity.ok(message);
+    }
+
+    // Block vendor profile
+    @PostMapping("/v/{id}/block")
+    public ResponseEntity<String> blockVendorProfile(
+            @PathVariable("id") Long vendorId,
+            @RequestParam("reason") String reason) {
+
+        String message = adminProfileService.blockVendorsProfile(vendorId, reason);
+        return ResponseEntity.ok(message);
+    }
+
+    // Unblock vendor profile
+    @PostMapping("/v/{id}/unblock")
+    public ResponseEntity<String> unblockVendorProfile(
+            @PathVariable("id") Long vendorId,
+            @RequestParam("reason") String reason) {
+
+        String message = adminProfileService.unblockVendorsProfile(vendorId, reason);
+        return ResponseEntity.ok(message);
+    }
+    @GetMapping("/v/blocked")
+    public ResponseEntity<List<VendorProfile>> getAllBlockedVendors() {
+        List<VendorProfile> blockedVendors = adminProfileService.getAllBlockedVendorsProfiles();
+        return ResponseEntity.ok(blockedVendors);
+    }
+
+    // Get all rejected vendor profiles
+    @GetMapping("/v/rejected")
+    public ResponseEntity<List<VendorProfile>> getAllRejectedVendors() {
+        List<VendorProfile> rejectedVendors = adminProfileService.getAllRejectedVendorsProfiles();
+        return ResponseEntity.ok(rejectedVendors);
     }
 
     

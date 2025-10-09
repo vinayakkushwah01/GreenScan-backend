@@ -17,6 +17,7 @@ public interface VendorProfileRepository extends JpaRepository<VendorProfile, Lo
     
     Optional<VendorProfile> findByUserIdAndIsActiveTrue(Long userId);
     Optional<VendorProfile> findByBusinessRegistrationNumber(String registrationNumber);
+    Optional<VendorProfile> findByIsActive(Boolean isActive);
     
     Page<VendorProfile> findByApprovalStatusAndIsActiveTrue(ApprovalStatus status, Pageable pageable);
     
