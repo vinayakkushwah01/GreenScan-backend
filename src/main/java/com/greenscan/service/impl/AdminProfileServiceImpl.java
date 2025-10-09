@@ -1,4 +1,5 @@
 package com.greenscan.service.impl;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Service;
 import com.greenscan.dto.response.VendorProfileAdminViewResponse;
 import com.greenscan.entity.VendorProfile;
 import com.greenscan.enums.ApprovalStatus;
+import com.greenscan.exception.custom.ResourceNotFoundException;
 import com.greenscan.repository.VendorProfileRepository;
 import com.greenscan.service.interfaces.AdminProfileService;
 
@@ -60,11 +62,23 @@ public class AdminProfileServiceImpl implements AdminProfileService {
         return dtoPage;
 
     }
+    @Override
+    public VendorProfileAdminViewResponse getVendorById(Long vendorId) {
+        return mapVendorWithKyc(vendorProfileRepository.findById(vendorId)
+                .orElseThrow(() -> new ResourceNotFoundException("VendorProfile", "id", vendorId)));
+    }
 
     @Override
-    public String approveVendorProfile(Long vendorId) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'approveVendorProfile'");
+    public String approveVendorProfile(Long vendorId,Long adminId) {
+        VendorProfile vendor = vendorProfileRepository.findById(vendorId)
+                .orElseThrow(() -> new ResourceNotFoundException("VendorProfile", "id", vendorId));
+        vendor.setApprovalStatus(ApprovalStatus.APPROVED);
+        vendor.setIsActive(true);
+        vendor.setApprovedAt(LocalDateTime.now());
+        vendor.setApprovedByAdminId(adminId);
+        vendor.setKycVerified(true);
+        vendorProfileRepository.save(vendor);
+        return "Vendor profile approved successfully";
     }
 
     @Override

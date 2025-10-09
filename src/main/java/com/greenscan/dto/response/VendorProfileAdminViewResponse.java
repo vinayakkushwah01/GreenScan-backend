@@ -66,7 +66,7 @@ public class VendorProfileAdminViewResponse {
     this.gstNumber = vendor.getGstNumber();
     this.panNumber = vendor.getPanNumber();
     this.kycDocs = null; // populate later
-    
+
         if (vendor.getKycFiles() != null && !vendor.getKycFiles().isEmpty()) {
         this.kycFiles = vendor.getKycFiles().stream()
                               .map(CloudinaryFile::getFileName)
@@ -89,31 +89,7 @@ public class VendorProfileAdminViewResponse {
     this.updatedAt = vendor.getUpdatedAt();
     }
 
-    //moved this to service 
-    // public VendorProfileAdminViewResponse mapVendorWithKyc(VendorProfile vendor, CloudinaryService cloudinaryService) {
-    //     if (vendor == null) return null;
-
-    //     List<byte[]> kycDocs = null;
-
-    //     if (vendor.getKycFiles() != null && !vendor.getKycFiles().isEmpty()) {
-    //         kycDocs = vendor.getKycFiles().stream()
-    //                         .map(file -> {
-    //                             try {
-    //                                 return cloudinaryService.getFile(file); 
-    //                             } catch (Exception e) {
-    //                                 e.printStackTrace();
-    //                                 return null; 
-    //                             }
-    //                         })
-    //                         .filter(Objects::nonNull) 
-    //                         .toList();
-    //     }
-
-    //     VendorProfileAdminViewResponse dto = new VendorProfileAdminViewResponse(vendor);
-    //     dto.setKycDocs(kycDocs);
-
-    //     return dto;
-    // }
+   
 
 
 }

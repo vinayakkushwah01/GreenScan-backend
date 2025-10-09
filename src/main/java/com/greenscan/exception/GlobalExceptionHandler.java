@@ -77,14 +77,20 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(FileUploadException.class)
-public ResponseEntity<Map<String, Object>> handleFileUploadException(FileUploadException ex) {
-    HttpStatus status =HttpStatus.BAD_REQUEST;
-    Map<String, Object> body = new HashMap<>();
+    public ResponseEntity<Map<String, Object>> handleFileUploadException(FileUploadException ex) {
+        HttpStatus status = HttpStatus.BAD_REQUEST;
+        Map<String, Object> body = new HashMap<>();
         body.put("status", HttpStatus.BAD_REQUEST.value());
         body.put("message", ex.getMessage()); // includes the file name
         body.put("timestamp", System.currentTimeMillis());
         return new ResponseEntity<>(body, status);
     }
-
+    @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
+    public ResponseEntity<Map<String, String>> handleAccessDeniedException(org.springframework.security.access.AccessDeniedException ex) {
+        Map<String, String> response = new HashMap<>();
+        response.put("error", "Access Denied");
+        response.put("message", "You do not have permission to access this resource.");
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+    }
 
 }

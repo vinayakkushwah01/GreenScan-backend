@@ -16,7 +16,8 @@ public interface AdminProfileService {
     // get all Admin profiles
     //get pending profile approval of vendors
     Page<VendorProfileAdminViewResponse> getPendingVendorsProfiles(int page);
-    String approveVendorProfile(Long vendorId);
+    public VendorProfileAdminViewResponse getVendorById(Long vendorId);
+    String approveVendorProfile(Long vendorId , Long adminId);
     String rejectVendorProfile(Long vendorId , String reason);
     String blockVendorsProfile(Long vendorId , String reason);
     String unblockVendorsProfile(Long vendorId , String reason);
