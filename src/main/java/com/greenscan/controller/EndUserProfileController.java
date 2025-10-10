@@ -12,7 +12,7 @@ import com.greenscan.service.interfaces.EndUserService;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/api/v1/end-user")
+@RequestMapping("/end-user")
 @RequiredArgsConstructor
 public class EndUserProfileController {
 
@@ -27,11 +27,11 @@ public class EndUserProfileController {
     }
 
     // Get profile by user ID (Admin only)
-    @GetMapping("/profile/{userId}")
-    public ResponseEntity<ApiResponse<EndUserProfileResponse>> getProfileById(@PathVariable String userId) {
-        EndUserProfileResponse profile = endUserService.getEndUserProfile(userId);
-        return ResponseEntity.ok(ApiResponse.success("Profile retrieved successfully", profile));
-    }
+    // @GetMapping("/profile/{userId}")
+    // public ResponseEntity<ApiResponse<EndUserProfileResponse>> getProfileById(@PathVariable String userId) {
+    //     EndUserProfileResponse profile = endUserService.getEndUserProfile(userId);
+    //     return ResponseEntity.ok(ApiResponse.success("Profile retrieved successfully", profile));
+    // }
 
     // Create new profile
     @PostMapping("/profile/create")

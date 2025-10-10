@@ -101,5 +101,6 @@ public class AdminController {
         return ResponseEntity.ok(rejectedVendors);
     }
 
+    //NGO Management APIs can be added here
     
 }
