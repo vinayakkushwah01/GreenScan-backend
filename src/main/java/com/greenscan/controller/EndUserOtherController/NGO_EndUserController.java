@@ -15,7 +15,7 @@ import lombok.RequiredArgsConstructor;
 
 
 @RestController
-@RequestMapping("/enduser_ngo")
+@RequestMapping("/end_users/ngo")
 @RequiredArgsConstructor
 public class NGO_EndUserController {
 

@@ -15,6 +15,8 @@ import com.greenscan.exception.custom.ResourceNotFoundException;
 import com.greenscan.repository.MainUserRepository;
 import com.greenscan.repository.NGOProfileRepository;
 import com.greenscan.service.interfaces.NGOService;
+
+
 @Service
 public class NGOServiceImpl implements NGOService {
    @Autowired

@@ -9,7 +9,8 @@ public interface RewardUserService {
 
     // Get summarized rewards (for card/list view)
     List<RewardSummaryDTO> getAvailableRewards(String category);
-
+    RewardSummaryDTO getReward(Long rewardId);
+    
     // Get detailed info of a specific reward
     RewardDetailDTO getRewardDetails(Long rewardId);
 

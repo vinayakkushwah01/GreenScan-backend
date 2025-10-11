@@ -94,7 +94,10 @@ public class SecurityConfig {
                 // Ads Company endpoints
                 .requestMatchers("/ads/**").hasAnyRole("ADS_COMPANY", "ADMIN")
 
-                // User profile endpoints
+                // End User profile endpoints
+                .requestMatchers("/end_users/**").hasAnyRole("END_USER", "ADMIN")
+                
+                 // Rewards endpoints
                 .requestMatchers(HttpMethod.GET, "/users/profile")
                     .hasAnyRole("END_USER", "VENDOR", "PICKUP_ASSISTANT", "ADMIN", "NGO", "ADS_COMPANY")
                 .requestMatchers(HttpMethod.PUT, "/users/profile")

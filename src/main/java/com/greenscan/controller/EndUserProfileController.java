@@ -12,7 +12,7 @@ import com.greenscan.service.interfaces.EndUserService;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/end-user")
+@RequestMapping("/users")
 @RequiredArgsConstructor
 public class EndUserProfileController {
 
