@@ -26,17 +26,11 @@ public class VendorProfileServiceImpl implements VendorService {
     private VendorProfileRepository vendorProfileRepository;
     @Autowired
     private  CloudinaryService cloudinaryService;
-
-    @Override
-    public VendorProfileResponse getVendorProfile(String vendorId) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getVendorProfile'");
-    }
-
+    
     @Override
     public VendorProfileResponse createVendorProfile(VendorProfileRequest request) {
-       MainUser mainUser = mainUserRepository.findById(request.getMainUserId())
-               .orElseThrow(() -> new RuntimeException("MainUser not found with id: " + request.getMainUserId()));
+        MainUser mainUser = mainUserRepository.findById(request.getMainUserId())
+        .orElseThrow(() -> new RuntimeException("MainUser not found with id: " + request.getMainUserId()));
 
         VendorProfile entity = VendorProfileRequest.toEntity(request, mainUser);
         try {
@@ -49,7 +43,45 @@ public class VendorProfileServiceImpl implements VendorService {
         }
     }
 
+    @Override
+    public String uploadKycDocument(MultipartFile file, Long mainUserId) {
+        // Find the vendor profile
+        VendorProfile vendorProfile = vendorProfileRepository.findByUserId(mainUserId)
+                .orElseThrow(() -> new RuntimeException(
+                        "Vendor profile not found for user ID: " + mainUserId));
+    
+        String name = vendorProfile.getId() + "_" + System.currentTimeMillis() + "_" + file.getOriginalFilename() + "_"
+                + (vendorProfile.getKycFiles() != null ? vendorProfile.getKycFiles().size() : 0);
+    
+        try {
+            CloudinaryFile c = cloudinaryService.uploadFile(file, name);
+    
+            if (vendorProfile.getKycFiles() == null) {
+                vendorProfile.setKycFiles(new ArrayList<>());
+            }
+    
+            // Add the uploaded file to vendor's KYC files
+            vendorProfile.getKycFiles().add(c);
+            vendorProfileRepository.save(vendorProfile);
+            return "File uploaded successfully for : "+vendorProfile.getId();
+            
+        } catch (IOException e) {
+            
+            throw new RuntimeException("Error in uploading file: " + file.getOriginalFilename(), e);
+        }
+        catch (Exception e) {
+            throw new RuntimeException("Error in uploading or encrypting file: " + file.getOriginalFilename(), e);
+        }
+    }
+    
 
+    // Un implemented methods from VendorService interface
+    
+        @Override
+        public VendorProfileResponse getVendorProfile(String vendorId) {
+            // TODO Auto-generated method stub
+            throw new UnsupportedOperationException("Unimplemented method 'getVendorProfile'");
+        }
     @Override
     public List<VendorProfileResponse> listAllVendors() {
         // TODO Auto-generated method stub
@@ -68,36 +100,6 @@ public class VendorProfileServiceImpl implements VendorService {
         throw new UnsupportedOperationException("Unimplemented method 'filterVendorsByLocation'");
     }
 
-@Override
-public String uploadKycDocument(MultipartFile file, Long mainUserId) {
-    // Find the vendor profile
-    VendorProfile vendorProfile = vendorProfileRepository.findByUserId(mainUserId)
-            .orElseThrow(() -> new RuntimeException(
-                    "Vendor profile not found for user ID: " + mainUserId));
-
-    String name = vendorProfile.getId() + "_" + file.getOriginalFilename() + "_"
-            + (vendorProfile.getKycFiles() != null ? vendorProfile.getKycFiles().size() : 0);
-
-    try {
-        CloudinaryFile c = cloudinaryService.uploadFile(file, name);
-
-        if (vendorProfile.getKycFiles() == null) {
-            vendorProfile.setKycFiles(new ArrayList<>());
-        }
-
-        // Add the uploaded file to vendor's KYC files
-        vendorProfile.getKycFiles().add(c);
-        vendorProfileRepository.save(vendorProfile);
-        return "File uploaded successfully for : "+vendorProfile.getId();
-
-    } catch (IOException e) {
-        
-        throw new RuntimeException("Error in uploading file: " + file.getOriginalFilename(), e);
-    }
-    catch (Exception e) {
-        throw new RuntimeException("Error in uploading or encrypting file: " + file.getOriginalFilename(), e);
-    }
-}
 
      
    

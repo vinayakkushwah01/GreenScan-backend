@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Data
 @Entity
@@ -64,13 +65,18 @@ public class NGOProfile extends BaseEntity {
 
     @Column(name = "bank_name")
     private String bankName;
+    
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JoinColumn(name = "ngo_profiles_id") // foreign key in CloudinaryFile table
+    private List<CloudinaryFile> registrationDocument;
 
     // Documents
-    @Column(name = "registration_document_url")
-    private String registrationDocumentUrl;
+    // @Column(name = "registration_document_url")
+    // private String registrationDocumentUrl;
 
-    @Column(name = "other_document_urls", columnDefinition = "TEXT")
-    private String otherDocumentUrls; // JSON array
+    // @Column(name = "other_document_urls", columnDefinition = "TEXT")
+    // private String otherDocumentUrls; // JSON array
+
 
     // Statistics
     @Column(name = "total_donors")

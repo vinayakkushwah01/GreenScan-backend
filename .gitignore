@@ -2,6 +2,8 @@ HELP.md
 # Ignore properties files
 src/main/resources/application.properties
 src/main/resources/application.properties
+src/main/java/com/greenscan/controller/CloudinaryController.java
+src/main/java/com/greenscan/controller/SupabaseStorageController.java
 target/
 .mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
