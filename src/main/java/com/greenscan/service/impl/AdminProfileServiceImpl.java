@@ -1,5 +1,6 @@
 package com.greenscan.service.impl;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -123,14 +124,21 @@ public class AdminProfileServiceImpl implements AdminProfileService {
     }
 
     @Override
-    public List<VendorProfile> getAllBlockedVendorsProfiles() {
-        return (List<VendorProfile>) vendorProfileRepository.findByIsActive(false).get();
-       
+    public List<VendorProfileAdminViewResponse> getAllBlockedVendorsProfiles() {
+        return vendorProfileRepository.findByIsActive(false)
+                .orElseGet(Collections::emptyList) // safer than orElse
+                .stream()
+                .map(VendorProfileAdminViewResponse::new)
+                .collect(Collectors.toList());
     }
 
     @Override
-    public List<VendorProfile> getAllRejectedVendorsProfiles() {
-        return (List<VendorProfile>) vendorProfileRepository.findByApprovalStatusAndIsActiveTrue(ApprovalStatus.REJECTED, Pageable.unpaged()).getContent();
+    public List<VendorProfileAdminViewResponse> getAllRejectedVendorsProfiles() {
+        return (List<VendorProfileAdminViewResponse>) vendorProfileRepository.findByApprovalStatusAndIsActiveTrue(ApprovalStatus.REJECTED, Pageable.unpaged())
+        .getContent()
+        .stream()
+        .map(VendorProfileAdminViewResponse::new)
+        .collect(Collectors.toList());
        
     }
     

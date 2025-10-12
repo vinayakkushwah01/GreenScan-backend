@@ -22,8 +22,8 @@ public interface AdminProfileService {
     String blockVendorsProfile(Long vendorId , String reason);
     String unblockVendorsProfile(Long vendorId , String reason);
     List<VendorProfileAdminViewResponse> getAllVendorsProfiles();
-    List<VendorProfile> getAllBlockedVendorsProfiles();
-    List<VendorProfile> getAllRejectedVendorsProfiles();
+    List<VendorProfileAdminViewResponse> getAllBlockedVendorsProfiles();
+    List<VendorProfileAdminViewResponse> getAllRejectedVendorsProfiles();
 
 
     //get pending profile approval of NGOs

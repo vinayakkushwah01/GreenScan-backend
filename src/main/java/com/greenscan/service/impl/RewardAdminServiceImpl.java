@@ -5,6 +5,7 @@ import java.io.FileOutputStream;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.greenscan.dto.request.RewardAdminRequestDTO;
@@ -16,6 +17,7 @@ import com.greenscan.exception.custom.ResourceNotFoundException;
 import com.greenscan.repository.RewardRepository;
 import com.greenscan.service.interfaces.RewardAdminService;
 
+@Service
 public class RewardAdminServiceImpl implements RewardAdminService {
     @Autowired
     private SupabaseStorageService supabaseStorageService;
@@ -48,6 +50,8 @@ public class RewardAdminServiceImpl implements RewardAdminService {
         // ===== Partner Info =====
         reward.setPartnerName(dto.getPartnerName());
         reward.setIsActive(dto.getIsActive() != null ? dto.getIsActive() : true);
+        reward.setImageUrl(dto.getImageUrl());
+        reward.setPartnerLogoUrl(dto.getPartnerLogoUrl());
     
         return reward;
     }
@@ -57,18 +61,34 @@ public class RewardAdminServiceImpl implements RewardAdminService {
     public RewardAdminResponseDTO createReward(RewardAdminRequestDTO requestDTO) {
         Reward reward = mapDtoToEntity(requestDTO);
         String rewardImgUrl =null; String partnerLogoUrl = null;
-        try{
-             rewardImgUrl= supabaseStorageService.uploadFile(requestDTO.getRewardImageFile(), requestDTO.getTitle());
-             partnerLogoUrl = supabaseStorageService.uploadFile(requestDTO.getPartnerLogoFile(), requestDTO.getTitle());
-        } catch (Exception e) {
-            throw new FileUploadException("Cannot upload file. Please try later.");
-        }
+        // try{
+        //      rewardImgUrl= supabaseStorageService.uploadFile(requestDTO.getRewardImageFile(), requestDTO.getTitle());
+        //      partnerLogoUrl = supabaseStorageService.uploadFile(requestDTO.getPartnerLogoFile(), requestDTO.getTitle());
+        // } catch (Exception e) {
+        //     throw new FileUploadException("Cannot upload file. Please try later.");
+        // }
         reward.setImageUrl(rewardImgUrl);
         reward.setPartnerLogoUrl(partnerLogoUrl);
         // Save reward to DB (repository code not shown here)
         return new RewardAdminResponseDTO(rewardRepository.save(reward));
 
     }
+
+    public String  uploadImg(File rewardImg , File partnerLogo , Long rewardId){
+       Reward reward = rewardRepository.findById(rewardId)
+                .orElseThrow(() -> new ResourceNotFoundException("Reward", "id", rewardId));
+        try{
+             String rewardImgUrl= supabaseStorageService.uploadFile(rewardImg, "Reward"+rewardId+"_"+System.currentTimeMillis());
+             String partnerLogoUrl = supabaseStorageService.uploadFile(partnerLogo, "Reward"+rewardId+"_"+System.currentTimeMillis());
+                reward.setImageUrl(rewardImgUrl);
+                reward.setPartnerLogoUrl(partnerLogoUrl);
+                rewardRepository.save(reward);
+                return "Files uploaded successfully";
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            throw new FileUploadException("Cannot upload file. Please try later.");
+        }
+    } 
    
     @Override
     public void deleteReward(Long rewardId) {
@@ -140,17 +160,17 @@ public class RewardAdminServiceImpl implements RewardAdminService {
         String partnerLogoUrl = existingReward.getPartnerLogoUrl();
 
         // 3️⃣ Upload new files if present
-        try {
-            if (requestDTO.getRewardImageFile() != null && requestDTO.getRewardImageFile().exists()) {
-                rewardImgUrl = supabaseStorageService.uploadFile(requestDTO.getRewardImageFile(), requestDTO.getTitle());
-            }
+        // try {
+        //     if (requestDTO.getRewardImageFile() != null && requestDTO.getRewardImageFile().exists()) {
+        //         rewardImgUrl = supabaseStorageService.uploadFile(requestDTO.getRewardImageFile(), requestDTO.getTitle());
+        //     }
 
-            if (requestDTO.getPartnerLogoFile() != null && requestDTO.getPartnerLogoFile().exists()) {
-                partnerLogoUrl = supabaseStorageService.uploadFile(requestDTO.getPartnerLogoFile(), requestDTO.getTitle());
-            }
-        } catch (Exception e) {
-            throw new FileUploadException("Cannot upload file. Please try later.");
-        }
+        //     if (requestDTO.getPartnerLogoFile() != null && requestDTO.getPartnerLogoFile().exists()) {
+        //         partnerLogoUrl = supabaseStorageService.uploadFile(requestDTO.getPartnerLogoFile(), requestDTO.getTitle());
+        //     }
+        // } catch (Exception e) {
+        //     throw new FileUploadException("Cannot upload file. Please try later.");
+        // }
 
         // 4️⃣ Map DTO fields to existing entity
         // Assuming you have a helper that maps all fields including image URLs

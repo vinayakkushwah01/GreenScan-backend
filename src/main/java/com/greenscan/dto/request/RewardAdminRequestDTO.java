@@ -27,10 +27,10 @@ public class RewardAdminRequestDTO {
 
     // ====== Image Uploads ======
     /** Image for the reward (uploaded as file, processed in service layer) */
-    private File rewardImageFile;
+    // private File rewardImageFile;
 
-    /** Partner logo file (uploaded separately, processed in service layer) */
-    private File partnerLogoFile;
+    // /** Partner logo file (uploaded separately, processed in service layer) */
+    // private File partnerLogoFile;
 
     /** URLs after upload — filled automatically by the service layer */
     private String imageUrl;
