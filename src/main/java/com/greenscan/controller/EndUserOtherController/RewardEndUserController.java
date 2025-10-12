@@ -24,6 +24,10 @@ public class RewardEndUserController {
     @GetMapping("/available")
     public ResponseEntity<List<RewardSummaryDTO>> getAvailableRewards(
             @RequestParam(required = false) String category) {
+                if(category == null || category.isEmpty()) {
+                    List<RewardSummaryDTO> rewards = rewardService.getAvailableRewards();
+                    return ResponseEntity.ok(rewards);
+                }
 
         List<RewardSummaryDTO> rewards = rewardService.getAvailableRewards(category);
         return ResponseEntity.ok(rewards);
