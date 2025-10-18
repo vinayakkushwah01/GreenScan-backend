@@ -274,6 +274,24 @@ public class AuthServiceImpl implements AuthService {
         return "Password reset successfully. Now you can login via new Password ";
     }
 
+    public String verifyEmail(String email){
+            MainUser user = mainUserRepository.findByEmailAndIsActiveTrue(email) 
+            .orElseThrow(() -> new ResourceNotFoundException("User", "email", email));
+             otpService.generateAndMailOtp(user);
+            return "otp has been sent to your registered email ";
+    }
+
+    public String  validateEmailVerifyOtp( String otp ,String email){
+        MainUser user = mainUserRepository.findByEmailAndIsActiveTrue(email) 
+            .orElseThrow(() -> new ResourceNotFoundException("User", "email", email));
+             
+       // otpService.validateOtp(user, otp);
+        user.setIsEmailVerified(otpService.validateOtp(user, otp));
+        mainUserRepository.save(user);
+        return "your email was successfully verified";
+        
+    }
+
     
 
     public String uploadProfileImg(Long id, File file) {

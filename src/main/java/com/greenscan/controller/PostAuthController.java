@@ -19,6 +19,7 @@ import com.greenscan.dto.response.AuthResponse;
 import com.greenscan.dto.response.StringResponse;
 import com.greenscan.dto.response.UserResponse;
 import com.greenscan.exception.custom.FileUploadException;
+import com.greenscan.exception.custom.ResourceNotFoundException;
 import com.greenscan.service.impl.AuthServiceImpl;
 
 import lombok.RequiredArgsConstructor;
@@ -49,6 +50,23 @@ public class PostAuthController {
         log.info("Received change password request for id: {}", id);
        String response = authService.changePassword(id, request.getOldPassword(), request.getNewPassword());
        return ResponseEntity.ok(new StringResponse(response));
+    }
+
+
+
+    @PostMapping("/verify-email/send")
+    public ResponseEntity<StringResponse> sendVerificationOtp(
+            @RequestParam("email") String email) { 
+            String responseMessage = authService.verifyEmail(email);
+            return ResponseEntity.ok(new StringResponse(responseMessage));
+    }
+
+    @PostMapping("/verify-email/validate")
+    public ResponseEntity<StringResponse> validateEmailVerificationOtp(
+            @RequestParam("email") String email, 
+            @RequestParam("otp") String otp) {
+                String resposne  = authService.validateEmailVerifyOtp(otp, email);
+                return ResponseEntity.ok(new StringResponse(resposne));
     }
 
     // @PostMapping(value = "/upload-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
