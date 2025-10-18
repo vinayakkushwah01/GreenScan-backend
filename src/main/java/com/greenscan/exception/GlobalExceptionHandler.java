@@ -7,7 +7,6 @@ import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -15,107 +14,88 @@ import org.springframework.web.servlet.NoHandlerFoundException;
 
 import com.greenscan.dto.response.ApiErrorResponse;
 import com.greenscan.dto.response.ApiResponse;
-import com.greenscan.exception.custom.DuplicateResourceException;
-import com.greenscan.exception.custom.EmailAlreadyExistsException;
-import com.greenscan.exception.custom.FileUploadException;
-import com.greenscan.exception.custom.MobileAlreadyExistsException;
-import com.greenscan.exception.custom.ResourceNotFoundException;
+import com.greenscan.dto.response.StringResponse;
+import com.greenscan.exception.custom.*;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
- @ExceptionHandler(EmailAlreadyExistsException.class)
+
+    // ----------- Custom Resource Exceptions -----------------
+    @ExceptionHandler(EmailAlreadyExistsException.class)
     public ResponseEntity<ApiResponse<Void>> handleEmailAlreadyExists(EmailAlreadyExistsException ex) {
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(ApiResponse.error(ex.getMessage()));
     }
-        @ExceptionHandler(MobileAlreadyExistsException.class)
+
+    @ExceptionHandler(MobileAlreadyExistsException.class)
     public ResponseEntity<ApiResponse<Void>> handleMobileAlreadyExists(MobileAlreadyExistsException ex) {
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(ApiResponse.error(ex.getMessage()));
     }
 
-     @ExceptionHandler(BadCredentialsException.class)
-    public ResponseEntity<Map<String, String>> handleBadCredentials(BadCredentialsException ex) {
-        Map<String, String> response = new HashMap<>();
-        response.put("error", "Invalid email or password");
-        return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
-    }
-    
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiResponse<Void>> handleGenericException(Exception ex) {
-       
-       System.out.println(ex.getLocalizedMessage());
-       System.err.println(ex);
-       
+    @ExceptionHandler(DuplicateResourceException.class)
+    public ResponseEntity<ApiResponse<Void>> handleDuplicateResource(DuplicateResourceException ex) {
         return ResponseEntity
-                .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ApiResponse.error("Something went wrong. Please try again later."));
-    }
-
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, String>> handleValidationExceptions(
-            MethodArgumentNotValidException ex) {
-
-        Map<String, String> errors = new HashMap<>();
-        ex.getBindingResult().getFieldErrors().forEach(error -> {
-            errors.put(error.getField(), error.getDefaultMessage());
-        });
-
-        return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
-    }
-
-
-     @ExceptionHandler(DuplicateResourceException.class)
-    public ResponseEntity<Object> handleDuplicateResourceException(DuplicateResourceException ex) {
-        
-        HttpStatus status = HttpStatus.CONFLICT; 
-        Map<String, Object> body = new HashMap<>();
-        body.put("timestamp", LocalDateTime.now());
-        body.put("status", status.value());
-        body.put("error", "Conflict");
-        body.put("message", ex.getMessage()); 
-        return new ResponseEntity<>(body, status);
+                .status(HttpStatus.CONFLICT)
+                .body(ApiResponse.error(ex.getMessage()));
     }
 
     @ExceptionHandler(FileUploadException.class)
-    public ResponseEntity<Map<String, Object>> handleFileUploadException(FileUploadException ex) {
-        HttpStatus status = HttpStatus.BAD_REQUEST;
-        Map<String, Object> body = new HashMap<>();
-        body.put("status", HttpStatus.BAD_REQUEST.value());
-        body.put("message", ex.getMessage()); // includes the file name
-        body.put("timestamp", System.currentTimeMillis());
-        return new ResponseEntity<>(body, status);
-    }
-    @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
-    public ResponseEntity<Map<String, String>> handleAccessDeniedException(org.springframework.security.access.AccessDeniedException ex) {
-        Map<String, String> response = new HashMap<>();
-        response.put("error", "Access Denied");
-        response.put("message", "You do not have permission to access this resource.");
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
-    }
-    
-     @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<ApiErrorResponse> handleResourceNotFound(ResourceNotFoundException ex) {
-        ApiErrorResponse response = new ApiErrorResponse(HttpStatus.NOT_FOUND.value(), ex.getMessage());
-        return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
-    }
-    @ExceptionHandler(NoHandlerFoundException.class)
-    public ResponseEntity<ApiErrorResponse> handleNoHandlerFound(NoHandlerFoundException ex) {
-    ApiErrorResponse response = new ApiErrorResponse(
-        HttpStatus.NOT_FOUND.value(),
-        "Requested URL not found: " + ex.getRequestURL()
-    );
-    return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+    public ResponseEntity<ApiResponse<Void>> handleFileUpload(FileUploadException ex) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error(ex.getMessage()));
     }
 
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiErrorResponse> handleAllExceptions(Exception ex) {
-        ApiErrorResponse response = new ApiErrorResponse(
-            HttpStatus.INTERNAL_SERVER_ERROR.value(),
-            "Something went wrong: " + ex.getMessage()
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ApiErrorResponse> handleResourceNotFound(ResourceNotFoundException ex) {
+        return new ResponseEntity<>(new ApiErrorResponse(HttpStatus.NOT_FOUND.value(), ex.getMessage()), HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(InvalidOtpException.class)
+    public ResponseEntity<StringResponse> handleInvalidOtp(InvalidOtpException ex) {
+        return new ResponseEntity<>(new StringResponse(ex.getMessage()), HttpStatus.BAD_REQUEST);
+    }
+
+    // ----------- Spring Security Exceptions -----------------
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<StringResponse> handleBadCredentials(BadCredentialsException ex) {
+        return new ResponseEntity<>(new StringResponse("Invalid email or password"), HttpStatus.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
+    public ResponseEntity<StringResponse> handleAccessDenied(org.springframework.security.access.AccessDeniedException ex) {
+        return new ResponseEntity<>(new StringResponse("Access Denied: You do not have permission to access this resource"), HttpStatus.FORBIDDEN);
+    }
+
+    // ----------- Validation Exceptions -----------------
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<Map<String, String>> handleValidationExceptions(MethodArgumentNotValidException ex) {
+        Map<String, String> errors = new HashMap<>();
+        ex.getBindingResult().getFieldErrors().forEach(error -> errors.put(error.getField(), error.getDefaultMessage()));
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
+    }
+
+    // ----------- 404 / URL not found -----------------
+    @ExceptionHandler(NoHandlerFoundException.class)
+    public ResponseEntity<ApiErrorResponse> handleNoHandlerFound(NoHandlerFoundException ex) {
+        return new ResponseEntity<>(
+                new ApiErrorResponse(HttpStatus.NOT_FOUND.value(), "Requested URL not found: " + ex.getRequestURL()),
+                HttpStatus.NOT_FOUND
         );
-        return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    // ----------- Generic Exception Handler -----------------
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ApiResponse<Void>> handleAllExceptions(Exception ex) {
+        log.error("Unhandled exception: ", ex); // log full stack trace
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ApiResponse.error("Something went wrong. Please try again later."));
     }
 }

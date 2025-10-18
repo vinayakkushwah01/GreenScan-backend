@@ -51,6 +51,9 @@ public class AuthServiceImpl implements AuthService {
     private final UserDetailsServiceImpl userDetailsServiceImpl;
     @Autowired
     private SupabaseStorageService supabaseStorageService;
+    @Autowired
+    private OtpService otpService;
+
 
 
     @Override
@@ -244,15 +247,31 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public void forgotPassword(String email) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'forgotPassword'");
+    public String forgotPassword(String email) {
+          // 1️⃣ Find user by email
+        MainUser user = mainUserRepository.findByEmailAndIsActiveTrue(email)
+            .orElseThrow(() -> new ResourceNotFoundException("MainUser", "email", email));
+
+        // 2️⃣ Generate OTP and send email
+         otpService.generateAndSendOtp(user);
+       return "otp has been sent to your registered email";
+
     }
 
     @Override
-    public void resetPassword(String token, String newPassword) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'resetPassword'");
+    public String  resetPassword(String email, String otpCode, String newPassword) {
+         // 1️⃣ Find user by email
+        MainUser user = mainUserRepository.findByEmailAndIsActiveTrue(email)
+                .orElseThrow(() -> new ResourceNotFoundException("MainUser", "email", email));
+
+        // 2️⃣ Validate OTP
+        otpService.validateOtp(user, otpCode);
+
+        // 3️⃣ Encode new password and update user
+        user.setPassword(passwordEncoder.encode(newPassword));
+        mainUserRepository.save(user);
+
+        return "Password reset successfully. Now you can login via new Password ";
     }
 
     
