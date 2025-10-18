@@ -62,4 +62,62 @@ public class SupabaseStorageService {
             }
         }
     }
+
+    // ✅ Fixed deleteFile method
+    public boolean deleteFile(String fileUrl) {
+        if (fileUrl == null || fileUrl.isEmpty()) {
+            System.out.println("File URL is null or empty.");
+            return false;
+        }
+
+        try {
+            // Extract the file path (relative path inside the bucket)
+            String filePath = extractFilePath(fileUrl);
+
+            // Construct DELETE endpoint
+            String deleteUrl = "https://" + projectRef + ".supabase.co/storage/v1/object/" + bucketName + "/" + filePath;
+
+            URL url = new URL(deleteUrl);
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("DELETE");
+            conn.setRequestProperty("Authorization", "Bearer " + apiKey);
+            conn.setRequestProperty("apikey", apiKey);
+
+            int responseCode = conn.getResponseCode();
+
+            if (responseCode == 200 || responseCode == 204) {
+                System.out.println("✅ File deleted successfully: " + filePath);
+                return true;
+            } else {
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getErrorStream()))) {
+                    String line;
+                    StringBuilder sb = new StringBuilder();
+                    while ((line = reader.readLine()) != null) {
+                        sb.append(line);
+                    }
+                    System.err.println("❌ Failed to delete file: " + responseCode + " " + sb);
+                }
+                return false;
+            }
+
+        } catch (Exception e) {
+            System.err.println("⚠️ Error deleting file: " + e.getMessage());
+            return false;
+        }
+    }
+
+    // ✅ Helper method to extract file path from URL
+    private String extractFilePath(String fileUrl) {
+        // Example:
+        // fileUrl = https://xyz.supabase.co/storage/v1/object/public/avatars/user123.png
+        // bucketName = avatars
+        // → returns: user123.png
+        String marker = bucketName + "/";
+        int index = fileUrl.indexOf(marker);
+        if (index != -1) {
+            return fileUrl.substring(index + marker.length());
+        }
+        return fileUrl;
+    }
+
 }

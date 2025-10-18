@@ -1,19 +1,24 @@
 package com.greenscan.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.greenscan.dto.request.ChangePasswordRequest;
 import com.greenscan.dto.request.CompleteProfileRequest;
+import com.greenscan.dto.response.ApiResponse;
 import com.greenscan.dto.response.AuthResponse;
 import com.greenscan.dto.response.StringResponse;
 import com.greenscan.dto.response.UserResponse;
+import com.greenscan.exception.custom.FileUploadException;
 import com.greenscan.service.impl.AuthServiceImpl;
 
 import lombok.RequiredArgsConstructor;
@@ -45,4 +50,16 @@ public class PostAuthController {
        String response = authService.changePassword(id, request.getOldPassword(), request.getNewPassword());
        return ResponseEntity.ok(new StringResponse(response));
     }
+
+    // @PostMapping(value = "/upload-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    // public ResponseEntity<ApiResponse<String>> uploadProfileImage(
+    //     @RequestPart("image") MultipartFile image , Long id ){
+    //         try{
+    //        String ans = endUserService.uploadProfileImg(id, convertMultiPartToFile(image));
+    //          return ResponseEntity.ok(ApiResponse.success(ans));
+    //         }
+    //         catch(Exception e ){
+    //              throw new FileUploadException("Failed to upload profile image: " + e.getMessage());    
+    //         }
+    // }
 }

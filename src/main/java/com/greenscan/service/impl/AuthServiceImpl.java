@@ -1,8 +1,11 @@
 package com.greenscan.service.impl;
 
+import java.io.File;
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Date;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -18,10 +21,13 @@ import com.greenscan.dto.request.LoginRequest;
 import com.greenscan.dto.request.RegisterRequest;
 import com.greenscan.dto.response.AuthResponse;
 import com.greenscan.dto.response.UserResponse;
+import com.greenscan.entity.EndUserProfile;
 import com.greenscan.entity.MainUser;
 import com.greenscan.enums.UserRole;
 import com.greenscan.exception.custom.EmailAlreadyExistsException;
+import com.greenscan.exception.custom.FileUploadException;
 import com.greenscan.exception.custom.MobileAlreadyExistsException;
+import com.greenscan.exception.custom.ResourceNotFoundException;
 import com.greenscan.repository.MainUserRepository;
 import com.greenscan.security.JwtTokenProvider;
 import com.greenscan.security.UserDetailsServiceImpl;
@@ -43,6 +49,8 @@ public class AuthServiceImpl implements AuthService {
     private final JwtTokenProvider tokenProvider;
     private final PasswordEncoder passwordEncoder;
     private final UserDetailsServiceImpl userDetailsServiceImpl;
+    @Autowired
+    private SupabaseStorageService supabaseStorageService;
 
 
     @Override
@@ -245,6 +253,28 @@ public class AuthServiceImpl implements AuthService {
     public void resetPassword(String token, String newPassword) {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'resetPassword'");
+    }
+
+    
+
+    public String uploadProfileImg(Long id, File file) {
+        MainUser user = mainUserRepository.findById(id).orElseThrow(()-> new ResourceNotFoundException("User not found for id "+id));
+
+        try {
+            String fileName = user.getId()+"_ProfileImg"+System.currentTimeMillis();
+           String url = supabaseStorageService.uploadFile(file, fileName);
+         if(user.getProfileImageUrl() != null) {
+            supabaseStorageService.deleteFile(user.getProfileImageUrl());
+            }
+         user.setProfileImageUrl(url);
+         mainUserRepository.save(user);
+         return "User profile image uploaded successfully for user "+user.getId();
+
+
+        } catch (IOException e) {
+            throw new FileUploadException("Failed to upload profile image for user id: " +user.getId());
+
+        }       
     }
     
 }

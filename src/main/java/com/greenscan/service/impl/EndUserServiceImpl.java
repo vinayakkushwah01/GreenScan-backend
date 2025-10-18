@@ -3,17 +3,20 @@ package com.greenscan.service.impl;
 import java.math.BigDecimal;
 import java.util.UUID;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.greenscan.dto.request.EndUserProfileRequest;
 import com.greenscan.dto.response.EndUserProfileResponse;
 import com.greenscan.entity.EndUserProfile;
 import com.greenscan.entity.MainUser;
+import com.greenscan.exception.custom.FileUploadException;
 import com.greenscan.exception.custom.ResourceNotFoundException;
 import com.greenscan.repository.EndUserProfileRepository;
 import com.greenscan.repository.MainUserRepository;
 import com.greenscan.service.interfaces.EndUserService;
 import java.io.File;
+import java.io.IOException;
 
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +30,9 @@ public class EndUserServiceImpl implements EndUserService {
 
     private final EndUserProfileRepository endUserProfileRepository;
     private final MainUserRepository mainUserRepository;
+        @Autowired
+    private SupabaseStorageService supabaseStorageService;
+
     @Override
     @Transactional(readOnly = true)
     public EndUserProfileResponse getEndUserProfile(Long userId) {
@@ -52,14 +58,14 @@ public class EndUserServiceImpl implements EndUserService {
     }
     @Override
      @Transactional
-    public EndUserProfileResponse createEndUserProfile(MainUser mainUser) {
-        log.info("Creating end user profile for user: {}", mainUser.getEmail());
-        
-        // Check if profile already exists
+    public EndUserProfileResponse createEndUserProfile( EndUserProfileRequest request) {
+        // Check if profile already exist
+       MainUser mainUser = mainUserRepository.findByIdAndIsActiveTrue(request.getMainUserId())
+                    .orElseThrow(()-> new ResourceNotFoundException("User", "id", request.getMainUserId()));
         if (endUserProfileRepository.findByUserIdAndIsActiveTrue(mainUser.getId()).isPresent()) {
-            throw new IllegalStateException("EndUserProfile already exists for user: " + mainUser.getId());
+            throw new IllegalStateException("End user profile already exists for userId: " + mainUser.getId());
         }
-        
+
         EndUserProfile profile = new EndUserProfile();
         profile.setUser(mainUser);
         profile.setGreenCoinsBalance(BigDecimal.ZERO);
@@ -69,6 +75,8 @@ public class EndUserServiceImpl implements EndUserService {
         profile.setTotalWasteRecycledKg(BigDecimal.ZERO);
         profile.setTotalCartsCompleted(0);
         profile.setEcoScore(0);
+        profile.setPreferredPickupTime(request.getPreferedPickupTime() != null ? request.getPreferedPickupTime() : "");
+        profile.setPreferredVendorId(request.getPreferdVendorId() != null ? request.getPreferdVendorId() : null);
        // profile.setReferralCode(generateReferralCode(mainUser.getId()));
         profile.setReferralBonusEarned(BigDecimal.ZERO);
         
@@ -80,8 +88,8 @@ public class EndUserServiceImpl implements EndUserService {
 
      @Override
     @Transactional
-    public EndUserProfileResponse updateEndUserProfile(Long userId, EndUserProfileRequest profileData) {
-        log.info("Updating end user profile for userId: {}", userId);
+    public EndUserProfileResponse updateEndUserProfile( EndUserProfileRequest profileData) {
+        log.info("Updating end user profile for userId: {}", profileData.getMainUserId());
         // re implement this method  
 
 
@@ -129,19 +137,30 @@ public class EndUserServiceImpl implements EndUserService {
         return response;
     }
 
-    @Override
-    public String uploadProfileImg(Long id, File file) {
-        //here you have to use supabase storage service to upload the file and store the url in the database
-        // the file name must be the userID+UserName_profileImg.extension
-        throw new UnsupportedOperationException("Unimplemented method 'uploadProfileImg'");
-    }
 
     @Override
-    public String updateProfileImg(Long id, File file) {
-        // first remove the old image from the storage
-         //here you have to use supabase storage service to upload the file and store the url in the database
-        // the file name must be the userID+UserName_profileImg.extension
-        throw new UnsupportedOperationException("Unimplemented method 'updateProfileImg'");
+    public String uploadProfileImg(Long id, File file) {
+        EndUserProfile endUser = endUserProfileRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("EndUserProfile", "id", id));
+
+        String fileName = id + endUser.getUser().getId() + System.currentTimeMillis() + "_profileImg";
+        try {
+           String url = supabaseStorageService.uploadFile(file, fileName);
+         MainUser user =   endUser.getUser();
+         if(user.getProfileImageUrl() != null) {
+            supabaseStorageService.deleteFile(user.getProfileImageUrl());
+            }
+         user.setProfileImageUrl(url);
+         mainUserRepository.save(user);
+         return "User profile image uploaded successfully for user "+endUser.getId();
+
+
+        } catch (IOException e) {
+            throw new FileUploadException("Failed to upload profile image for user id: " +endUser.getUser().getId());
+
+        }       
     }
+
+    
     
 }
