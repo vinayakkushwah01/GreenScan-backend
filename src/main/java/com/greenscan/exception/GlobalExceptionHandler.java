@@ -11,12 +11,15 @@ import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.NoHandlerFoundException;
 
+import com.greenscan.dto.response.ApiErrorResponse;
 import com.greenscan.dto.response.ApiResponse;
 import com.greenscan.exception.custom.DuplicateResourceException;
 import com.greenscan.exception.custom.EmailAlreadyExistsException;
 import com.greenscan.exception.custom.FileUploadException;
 import com.greenscan.exception.custom.MobileAlreadyExistsException;
+import com.greenscan.exception.custom.ResourceNotFoundException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -92,5 +95,27 @@ public class GlobalExceptionHandler {
         response.put("message", "You do not have permission to access this resource.");
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
     }
+    
+     @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ApiErrorResponse> handleResourceNotFound(ResourceNotFoundException ex) {
+        ApiErrorResponse response = new ApiErrorResponse(HttpStatus.NOT_FOUND.value(), ex.getMessage());
+        return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+    }
+    @ExceptionHandler(NoHandlerFoundException.class)
+    public ResponseEntity<ApiErrorResponse> handleNoHandlerFound(NoHandlerFoundException ex) {
+    ApiErrorResponse response = new ApiErrorResponse(
+        HttpStatus.NOT_FOUND.value(),
+        "Requested URL not found: " + ex.getRequestURL()
+    );
+    return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+    }
 
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ApiErrorResponse> handleAllExceptions(Exception ex) {
+        ApiErrorResponse response = new ApiErrorResponse(
+            HttpStatus.INTERNAL_SERVER_ERROR.value(),
+            "Something went wrong: " + ex.getMessage()
+        );
+        return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 }

@@ -140,23 +140,24 @@ public class EndUserServiceImpl implements EndUserService {
 
     @Override
     public String uploadProfileImg(Long id, File file) {
-        EndUserProfile endUser = endUserProfileRepository.findById(id)
+        MainUser mainUser = mainUserRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("EndUserProfile", "id", id));
 
-        String fileName = id + endUser.getUser().getId() + System.currentTimeMillis() + "_profileImg";
+        String fileName = id + mainUser.getId() + System.currentTimeMillis() + "_profileImg";
         try {
            String url = supabaseStorageService.uploadFile(file, fileName);
-         MainUser user =   endUser.getUser();
-         if(user.getProfileImageUrl() != null) {
-            supabaseStorageService.deleteFile(user.getProfileImageUrl());
+        
+         if(mainUser.getProfileImageUrl() != null) {
+            supabaseStorageService.deleteFile(mainUser.getProfileImageUrl());
             }
-         user.setProfileImageUrl(url);
-         mainUserRepository.save(user);
-         return "User profile image uploaded successfully for user "+endUser.getId();
+         mainUser.setProfileImageUrl(url);
+         mainUserRepository.save(mainUser);
+         return "User profile image uploaded successfully for user "+mainUser.getId();
 
 
         } catch (IOException e) {
-            throw new FileUploadException("Failed to upload profile image for user id: " +endUser.getUser().getId());
+            System.err.println("At Service layer "+e.getLocalizedMessage());
+            throw new FileUploadException("Failed to upload profile image for user id: " +mainUser.getId());
 
         }       
     }

@@ -15,6 +15,7 @@ import com.greenscan.dto.response.ApiResponse;
 import com.greenscan.dto.response.EndUserProfileResponse;
 import com.greenscan.entity.MainUser;
 import com.greenscan.exception.custom.FileUploadException;
+import com.greenscan.service.impl.EndUserServiceImpl;
 import com.greenscan.service.interfaces.EndUserService;
 
 import lombok.RequiredArgsConstructor;
@@ -24,13 +25,12 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class EndUserProfileController {
 
-    private final EndUserService endUserService;
+    private final EndUserServiceImpl endUserService;
 
     // Get my profile
-    @GetMapping("/profile")
-    public ResponseEntity<ApiResponse<EndUserProfileResponse>> getMyProfile(Authentication auth) {
-        MainUser user = (MainUser) auth.getPrincipal();
-        EndUserProfileResponse profile = endUserService.getEndUserProfile(user);
+    @GetMapping("/profile/{id}")
+    public ResponseEntity<ApiResponse<EndUserProfileResponse>> getMyProfile(@PathVariable Long id ) {
+        EndUserProfileResponse profile = endUserService.getEndUserProfile(id);
         return ResponseEntity.ok(ApiResponse.success("Profile retrieved successfully", profile));
     }
 
@@ -43,33 +43,31 @@ public class EndUserProfileController {
 
     // Create new profile
     @PostMapping("/profile/create")
-    public ResponseEntity<ApiResponse<EndUserProfileResponse>> createProfile(EndUserProfileRequest request) {
+    public ResponseEntity<ApiResponse<EndUserProfileResponse>> createProfile(@RequestBody EndUserProfileRequest request) {
        // MainUser user = (MainUser) auth.getPrincipal();
         EndUserProfileResponse profile = endUserService.createEndUserProfile(request);
         return ResponseEntity.ok(ApiResponse.success("Profile created successfully", profile));
     }
 
     // Get my coins balance
-    @GetMapping("/coins/balance")
-    public ResponseEntity<ApiResponse<String>> getCoinsBalance(Authentication auth) {
-        MainUser user = (MainUser) auth.getPrincipal();
-        EndUserProfileResponse profile = endUserService.getEndUserProfile(user);
+    @GetMapping("/coins/balance/{id}")
+    public ResponseEntity<ApiResponse<String>> getCoinsBalance( @PathVariable Long id) {
+        EndUserProfileResponse profile = endUserService.getEndUserProfile(id);
         return ResponseEntity.ok(ApiResponse.success("Balance: " + profile.getGreenCoinsBalance(), null));
     }
 
     // Get my eco score
-    @GetMapping("/eco-score")
-    public ResponseEntity<ApiResponse<Integer>> getEcoScore(Authentication auth) {
-        MainUser user = (MainUser) auth.getPrincipal();
-        EndUserProfileResponse profile = endUserService.getEndUserProfile(user);
+    @GetMapping("/eco-score/{id}")
+    public ResponseEntity<ApiResponse<Integer>> getEcoScore(@PathVariable Long id) {
+       
+        EndUserProfileResponse profile = endUserService.getEndUserProfile(id);
         return ResponseEntity.ok(ApiResponse.success("Eco Score", profile.getEcoScore()));
     }
 
     // Get my statistics
-    @GetMapping("/stats")
-    public ResponseEntity<ApiResponse<EndUserProfileResponse>> getMyStats(Authentication auth) {
-        MainUser user = (MainUser) auth.getPrincipal();
-        EndUserProfileResponse profile = endUserService.getEndUserProfile(user);
+    @GetMapping("/stats/{id}")
+    public ResponseEntity<ApiResponse<EndUserProfileResponse>> getMyStats( @PathVariable Long id) {
+        EndUserProfileResponse profile = endUserService.getEndUserProfile(id);
         return ResponseEntity.ok(ApiResponse.success("Statistics retrieved successfully", profile));
     }
 
@@ -81,10 +79,12 @@ public class EndUserProfileController {
              return ResponseEntity.ok(ApiResponse.success(ans));
             }
             catch(Exception e ){
+                System.err.println(e.getLocalizedMessage());
+                System.err.println(e.getStackTrace());
                  throw new FileUploadException("Failed to upload profile image: " + e.getMessage());    
             }
     }
-    
+
     @PostMapping(value = "/update-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<String>> updateProfileImage(
         @RequestPart("image") MultipartFile image , Long id ){
@@ -98,6 +98,7 @@ public class EndUserProfileController {
     }
     
 
+    
 
     private File convertMultiPartToFile(MultipartFile file) throws IOException {
         File convFile = new File(System.getProperty("java.io.tmpdir") + "/" + file.getOriginalFilename());
