@@ -4,6 +4,7 @@ import com.greenscan.dto.request.CompleteProfileRequest;
 import com.greenscan.dto.request.LoginRequest;
 import com.greenscan.dto.request.RegisterRequest;
 import com.greenscan.dto.response.AuthResponse;
+import com.greenscan.dto.response.StringResponse;
 import com.greenscan.dto.response.UserResponse;
 import com.greenscan.service.impl.AuthServiceImpl;
 
@@ -57,5 +58,24 @@ public class AuthController {
 
         return ResponseEntity.ok(authResponse);
     }
-   
+      
+    
+    @PostMapping("/forgot-password")
+    public ResponseEntity<StringResponse> forgotPassword(@RequestParam String email) {
+        log.info("Received forgot password request for email: {}", email);
+        String message = authService.forgotPassword(email);
+        return ResponseEntity.ok(new StringResponse(message));
+    }
+
+    // 2️⃣ Reset Password using OTP
+    @PostMapping("/reset-password")
+    public ResponseEntity<StringResponse> resetPassword(
+            @RequestParam String email,
+            @RequestParam String otp,
+            @RequestParam String newPassword) {
+
+        log.info("Received reset password request for email: {}", email);
+        String message = authService.resetPassword(email, otp, newPassword);
+        return ResponseEntity.ok(new StringResponse(message));
+    }
 }

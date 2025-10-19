@@ -13,6 +13,6 @@ public interface AuthService {
     AuthResponse refreshToken(String refreshToken);
     void logout(Long userId);
     String changePassword(Long userId, String oldPassword, String newPassword);
-    void forgotPassword(String email);
-    void resetPassword(String token, String newPassword);
+    String forgotPassword(String email);
+    String resetPassword(String email, String otpCode, String newPassword);
 }
