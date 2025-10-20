@@ -1,94 +1,123 @@
 package com.greenscan.service.impl;
 
-// Java Standard Imports
+// Java Imports
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-// Spring Framework Imports
+// Spring Imports
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-// JSON/Serialization Imports (Requires Jackson dependency)
+// JSON Handling
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-// Google GenAI SDK Imports (We only import available classes)
+// Google GenAI SDK
 import com.google.genai.Client;
 import com.google.genai.types.Content;
 import com.google.genai.types.GenerateContentConfig;
 import com.google.genai.types.GenerateContentResponse;
 import com.google.genai.types.Part;
 
-// Custom Data Record Import
+// Custom Imports
 import com.greenscan.entity.RecyclingData;
+import com.greenscan.enums.MaterialType;
 
 @Service
 public class RecyclingDetectionService {
 
     private final Client geminiClient;
     private final ObjectMapper objectMapper;
-    private final String MODEL_NAME = "gemini-2.5-flash"; 
+    private final String MODEL_NAME = "gemini-2.5-flash";
 
-    /**
-     * Initializes the service using the Client.builder() pattern
-     * and injects the API key from application.properties.
-     */
-    public RecyclingDetectionService(
-            @Value("${ai_detection_api_key}") String apiKey) {
-        
+    public RecyclingDetectionService(@Value("${ai_detection_api_key}") String apiKey) {
         this.geminiClient = Client.builder()
                 .apiKey(apiKey)
                 .build();
-                
         this.objectMapper = new ObjectMapper();
     }
 
     /**
-     * Analyzes an image of a recyclable item using Gemini and returns structured data.
+     * Analyze an uploaded recycling image using Gemini and classify material type.
      */
     public RecyclingData analyzeRecyclingItem(File imageFile) throws IOException {
-        
-        // --- 1. Prepare the Image Content ---
+
+        // 1️⃣ Read Image File
         byte[] imageBytes = Files.readAllBytes(imageFile.toPath());
         String mimeType = Files.probeContentType(imageFile.toPath());
-        
         Part imagePart = Part.fromBytes(imageBytes, mimeType != null ? mimeType : "image/jpeg");
-        
-        // --- 2. Define the Text Prompt ---
-        String prompt = "Analyze the item for recycling. Determine its name, specific material type, estimated weight (in grams), and provide a brief description of its condition. Return the result ONLY as a JSON object.";
 
-        // --- 3. Configure for Structured JSON Output ---
-        GenerateContentConfig config = GenerateContentConfig.builder()
-                .responseMimeType("application/json")
-                .responseSchema(RecyclingData.getResponseSchema())
-                .build();
+        // 2️⃣ Build enum list for Gemini to reference
+        String allowedEnumValues = Stream.of(MaterialType.values())
+                .map(Enum::name)
+                .collect(Collectors.joining(", "));
+
+        // 3️⃣ Construct AI Prompt with dynamic enum list
+        String prompt = """
+        You are an expert recycling classification system.
+        Analyze the provided image and identify:
+        - itemName: the common name of the object.
+        - materialType: choose EXACTLY one value from this enum list:
+        """ + allowedEnumValues + """
         
-        // --- 4. Build the Full Multimodal Request Content ---
+        - estimatedWeight: approximate weight of the item in kilograms (kg, decimals allowed, e.g., 0.35).
+        - conditionDescription: short description of its physical condition.
+
+        Important Rules:
+        - The 'materialType' value MUST match one of the enum names exactly (case-sensitive).
+        - Return ONLY valid JSON (no markdown or text outside JSON).
+        - Do not add explanations or extra fields.
+        """;
+
+        // 4️⃣ JSON Schema (auto-updated with enum names)
+        String enumArray = Stream.of(MaterialType.values())
+                .map(e -> "\"" + e.name() + "\"")
+                .collect(Collectors.joining(", "));
+        String responseSchema = """
+        {
+          "type": "object",
+          "properties": {
+            "itemName": { "type": "string" },
+            "materialType": { "type": "string", "enum": [%s] },
+            "estimatedWeight": { "type": "number" },
+            "conditionDescription": { "type": "string" }
+          },
+          "required": ["itemName", "materialType", "estimatedWeight", "conditionDescription"]
+        }
+        """.formatted(enumArray);
+
+        // 5️⃣ Configure Gemini for structured JSON output
+      GenerateContentConfig config = GenerateContentConfig.builder()
+        .responseMimeType("application/json")
+        .responseSchema(RecyclingData.getResponseSchema()) // now compatible
+        .build();
+
+        // 6️⃣ Combine text and image inputs
         List<Content> contents = List.of(
-            Content.builder()
-                .parts(imagePart, Part.fromText(prompt))
-                .role("user")
-                .build()
+                Content.builder()
+                        .parts(imagePart, Part.fromText(prompt))
+                        .role("user")
+                        .build()
         );
 
-        // --- 5. Call the Gemini API ---
-        // FIX: Using the most common, simple direct method overload: 
-        // generateContent(modelId, contentsList, config)
+        // 7️⃣ Call Gemini API
         GenerateContentResponse response = geminiClient.models.generateContent(
-                MODEL_NAME, 
-                contents, 
+                MODEL_NAME,
+                contents,
                 config
         );
 
-        // --- 6. Parse the Structured JSON Output ---
         String jsonText = response.text();
-        
+
+        // 8️⃣ Deserialize into Java object
         try {
-             return objectMapper.readValue(jsonText, RecyclingData.class);
+            return objectMapper.readValue(jsonText, RecyclingData.class);
         } catch (Exception e) {
-             System.err.println("Gemini API returned unparseable JSON:\n" + jsonText);
-             throw new IOException("Failed to parse structured JSON response from AI model.", e);
+            System.err.println("⚠️ Unparseable JSON returned from Gemini:\n" + jsonText);
+            throw new IOException("Failed to parse structured JSON from Gemini.", e);
         }
     }
 }
