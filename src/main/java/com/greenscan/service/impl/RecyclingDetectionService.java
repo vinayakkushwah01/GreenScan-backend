@@ -25,6 +25,7 @@ import com.google.genai.types.Part;
 // Custom Imports
 import com.greenscan.entity.RecyclingData;
 import com.greenscan.enums.MaterialType;
+import com.greenscan.exception.custom.RecyclingAnalysisException;
 
 @Service
 public class RecyclingDetectionService {
@@ -44,7 +45,7 @@ public class RecyclingDetectionService {
      * Analyze an uploaded recycling image using Gemini and classify material type.
      */
     public RecyclingData analyzeRecyclingItem(File imageFile) throws IOException {
-
+         try {
         // 1️⃣ Read Image File
         byte[] imageBytes = Files.readAllBytes(imageFile.toPath());
         String mimeType = Files.probeContentType(imageFile.toPath());
@@ -119,5 +120,12 @@ public class RecyclingDetectionService {
             System.err.println("⚠️ Unparseable JSON returned from Gemini:\n" + jsonText);
             throw new IOException("Failed to parse structured JSON from Gemini.", e);
         }
+    } catch (IOException e) {
+        throw new RecyclingAnalysisException("Failed to read image or parse AI response", e);
+    } catch (com.google.genai.errors.ClientException e) {
+        throw new RecyclingAnalysisException("AI API Error: " + e.getMessage(), e);
+    } catch (Exception e) {
+        throw new RecyclingAnalysisException("Unexpected error during recycling analysis", e);
+    }
     }
 }

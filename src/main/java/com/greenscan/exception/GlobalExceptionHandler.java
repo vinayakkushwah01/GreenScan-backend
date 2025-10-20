@@ -98,4 +98,38 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ApiResponse.error("Something went wrong. Please try again later."));
     }
+
+       @ExceptionHandler(RecyclingAnalysisException.class)
+    public ResponseEntity<Map<String, Object>> handleRecyclingException(RecyclingAnalysisException ex) {
+        Map<String, Object> body = Map.of(
+                "timestamp", LocalDateTime.now(),
+                "status", ex.getStatusCode(),
+                "error", "Recycling Analysis Error",
+                "message", ex.getMessage()
+        );
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
+    }
+     // Handle CartNotFound
+    @ExceptionHandler(CartNotFound.class)
+    public ResponseEntity<Map<String, Object>> handleCartNotFound(CartNotFound ex) {
+        Map<String, Object> body = Map.of(
+                "timestamp", LocalDateTime.now(),
+                "status", HttpStatus.NOT_FOUND.value(),
+                "error", "Cart Not Found",
+                "message", ex.getMessage()
+        );
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
+    }
+     // Handle UnAuthorizedException
+    @ExceptionHandler(UnAuthorizedException.class)
+    public ResponseEntity<Map<String, Object>> handleUnAuthorized(UnAuthorizedException ex) {
+        Map<String, Object> body = Map.of(
+                "timestamp", LocalDateTime.now(),
+                "status", HttpStatus.UNAUTHORIZED.value(),
+                "error", "Unauthorized",
+                "message", ex.getMessage()
+        );
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(body);
+    }
 }
+
