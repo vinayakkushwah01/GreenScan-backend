@@ -58,11 +58,11 @@ public class CartItem extends BaseEntity {
     @Column(name = "ai_detection_data", columnDefinition = "TEXT")
     private String aiDetectionData; // JSON string with AI response
 
-    @Column(name = "barcode")
-    private String barcode;
+    // @Column(name = "barcode")
+    // private String barcode;
 
-    @Column(name = "qr_code")
-    private String qrCode;
+    // @Column(name = "qr_code")
+    // private String qrCode;
 
     // User edit tracking
     @Column(name = "user_edited")

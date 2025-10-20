@@ -3,12 +3,14 @@ package com.greenscan.dto.response;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+import com.greenscan.enums.MaterialType;
+
 import lombok.Data;
 @Data
 public class CartItemResponse {
     private Long id;
     private String itemName;
-    private String materialType;
+    private MaterialType materialType;
     private BigDecimal estimatedWeight;
     private BigDecimal actualWeight;
     private BigDecimal estimatedCoins;
