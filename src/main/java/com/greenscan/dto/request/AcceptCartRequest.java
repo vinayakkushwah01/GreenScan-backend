@@ -1,13 +1,15 @@
 package com.greenscan.dto.request;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 @Data
 public class AcceptCartRequest {
      @NotBlank(message = "Cart ID is required")
-    private String cartId;
-    
+    private Long cartId;
     private String notes;
-    private String estimatedPickupTime; // ISO format
+    private LocalDateTime estimatedPickupTime; // ISO format
 }

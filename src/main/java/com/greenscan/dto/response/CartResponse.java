@@ -22,7 +22,10 @@ public class CartResponse {
     private UserResponse vendor;
     private UserResponse pickupAssistant;
     
+    private Double lattiude;
+    private Double logitude;
     private String pickupAddress;
+    
     private String pickupInstructions;
     private String vendorNotes;
     

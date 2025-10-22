@@ -1,19 +1,22 @@
 package com.greenscan.dto.request;
 
+import com.greenscan.enums.MaterialType;
+
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 @Data
 public class AddItemRequest {
   @NotBlank(message = "Cart ID is required")
-    private String cartId;
+    private Long cartId;
     
     private String imageUrl; // From image upload
-    private String barcode;
-    private String qrCode;
     
     // For manual entry fallback
     private String itemName;
-    private String materialType;
-    private Double estimatedWeight;  
+    private MaterialType materialType;
+    private Double estimatedGreenCoin;
+    private Double estimatedWeight; 
+    private  String aiDetectionData;
+    private  double aiConfidenceScore; 
 }

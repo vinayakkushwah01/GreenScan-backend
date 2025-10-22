@@ -17,6 +17,7 @@ import java.util.Optional;
 public interface CartRepository extends JpaRepository<Cart, Long> {
     
     Optional<Cart> findByCartNumberAndIsActiveTrue(String cartNumber);
+
     
     Page<Cart> findByUserIdAndIsActiveTrue(Long userId, Pageable pageable);
     Page<Cart> findByVendorIdAndIsActiveTrue(Long vendorId, Pageable pageable);
