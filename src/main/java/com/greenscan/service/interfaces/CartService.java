@@ -10,6 +10,7 @@ import com.greenscan.entity.Cart;
 import com.greenscan.enums.CartStatus;
 import org.springframework.data.domain.Pageable;
 
+import java.io.File;
 import java.util.List;
 
 public interface CartService {
@@ -49,7 +50,7 @@ public interface CartService {
     List<CartResponse> getVendorCartsByStatus(Long vendorId, CartStatus status);
 
     //    Add item to cart 
-    CartResponse addItemToCart(AddItemRequest request, Long userId);
+    CartResponse addItemToCart(File img ,  Long userId , Long cartId);
 
     //    Remove item from cart
     CartResponse removeItemFromCart(Long cartId, Long itemId, Long userId);

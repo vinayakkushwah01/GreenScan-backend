@@ -16,5 +16,7 @@ public class AddItemRequest {
     private String itemName;
     private MaterialType materialType;
     private Double estimatedGreenCoin;
-    private Double estimatedWeight;  
+    private Double estimatedWeight; 
+    private  String aiDetectionData;
+    private  double aiConfidenceScore; 
 }

@@ -1,5 +1,6 @@
 package com.greenscan.service.impl;
 
+import java.io.File;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Service;
 import com.greenscan.dto.request.AcceptCartRequest;
 import com.greenscan.dto.request.AddItemRequest;
 import com.greenscan.dto.request.CreateCartRequest;
+import com.greenscan.dto.request.EditAiDetectionItemRequest;
 import com.greenscan.dto.request.RequestPickupRequest;
 import com.greenscan.dto.response.CartItemResponse;
 import com.greenscan.dto.response.CartResponse;
@@ -23,9 +25,11 @@ import com.greenscan.entity.CartStatusHistory;
 import com.greenscan.entity.MainUser;
 import com.greenscan.entity.VendorProfile;
 import com.greenscan.enums.CartStatus;
+import com.greenscan.enums.ItemStatus;
 import com.greenscan.exception.custom.CartNotFound;
 import com.greenscan.exception.custom.ResourceNotFoundException;
 import com.greenscan.exception.custom.UnAuthorizedException;
+import com.greenscan.repository.CartItemRepository;
 import com.greenscan.repository.CartRepository;
 import com.greenscan.repository.EndUserProfileRepository;
 import com.greenscan.repository.MainUserRepository;
@@ -40,6 +44,11 @@ public class CartServiceImpl  implements CartService{
     private final EndUserProfileRepository endUserProfileRepository;
     private final MainUserRepository mainUserRepository;
     private final VendorProfileRepository vendorProfileRepository;
+    private final ItemPreProcess itemPreProcess;
+    private final CartItemRepository cartItemRepository;
+    private final MailService mailService;
+    
+
 
 
     public Cart convertToEntity(CreateCartRequest request, MainUser user, VendorProfile vendor) {
@@ -95,7 +104,12 @@ public class CartServiceImpl  implements CartService{
     public CartResponse createCartEmpty(Long userId) {
         MainUser user = mainUserRepository.findById(userId)
             .orElseThrow(()->new ResourceNotFoundException("Main User not found for given id"));
-        return convertToResponse( cartRepository.save(convertToEntity(null, user, null)));
+        Cart cart = new Cart();
+        cart.setUser(user);
+        cart.setStatus(com.greenscan.enums.CartStatus.DRAFT);
+        // Generate unique cart number (you can replace this logic as needed)
+        cart.setCartNumber("CART-" + System.currentTimeMillis());
+        return convertToResponse( cartRepository.save(cart));
     }
 
     @Override
@@ -136,7 +150,7 @@ public class CartServiceImpl  implements CartService{
       }
       if(cart.getVendor() == null) {
         if(request.getVendorId()!= null){
-            VendorProfile v =  vendorProfileRepository.findById(userId).orElseThrow(()-> new ResourceNotFoundException("Vendor not found for id "+request.getVendorId()));
+            VendorProfile v =  vendorProfileRepository.findById(request.getVendorId()).orElseThrow(()-> new ResourceNotFoundException("Vendor not found for id "+request.getVendorId()));
             cart.setVendor(v.getUser());
         }
       }
@@ -171,25 +185,25 @@ public class CartServiceImpl  implements CartService{
         if( cart.getUser()!= mainUserRepository.findById(userId).orElseThrow(()-> new ResourceNotFoundException("User not found for id "+userId))){
             throw new AuthorizationServiceException("user not authorized");
         }
-        if(request.getPickupAddressLine1() == null) {
+        if(request.getPickupAddressLine1() != null) {
             cart.setPickupAddressLine1(request.getPickupAddressLine1());
         }
-        if(request.getPickupAddressLine2() == null)  {
+        if(request.getPickupAddressLine2() != null)  {
             cart.setPickupAddressLine2(request.getPickupAddressLine2());
         }
-        if(request.getPickupCity() == null) {
+        if(request.getPickupCity() != null) {
             cart.setPickupCity(request.getPickupCity());
         }
-        if(request.getPickupLatitude() == null) {
+        if(request.getPickupLatitude() != null) {
             cart.setPickupLatitude(request.getPickupLatitude());
         }
-        if(request.getPickupLongitude() == null) {
+        if(request.getPickupLongitude() != null) {
             cart.setPickupLongitude(request.getPickupLongitude());
         }
-        if(request.getPickupPincode() == null) {
+        if(request.getPickupPincode() != null) {
             cart.setPickupPincode(request.getPickupPincode());
         }
-        if(request.getPickupInstructions() == null){
+        if(request.getPickupInstructions() != null){
             cart.setPickupInstructions(request.getPickupInstructions());
         }
         return convertToResponse(cartRepository.save(cart));
@@ -287,25 +301,169 @@ public class CartServiceImpl  implements CartService{
         
         Cart cart = cartRepository.findById(cartId).orElseThrow(()-> new CartNotFound("Cart with given id not found "));
         cart.setVendor(vendor.getUser());
+        mailService.notifyVendorAssignedToCart(cart.getVendor().getEmail(), cart.getId().toString());
         return convertToResponse( cartRepository.save(cart));
     }
 
-   
+
     @Override
-    public CartResponse addItemToCart(AddItemRequest request, Long userId) {
-        Cart cart = cartRepository.findById(request.getCartId()).orElseThrow(()-> new CartNotFound("Cart not found for id "+request.getCartId()));
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'addItemToCart'");
+    public CartResponse addItemToCart(File file , Long userId , Long cartId) {
+     
+        Cart cart = cartRepository.findById(cartId).orElseThrow(()-> new CartNotFound("Cart not found for id "+cartId));
+        AddItemRequest request =  itemPreProcess.getAiScannedItem(cartId,userId,file);
+        CartItem item = new CartItem();
+        item.setCart(cart);
+        item.setItemName(request.getItemName());
+        item.setMaterialType(request.getMaterialType());
+        item.setEstimatedWeight(BigDecimal.valueOf(request.getEstimatedWeight()));
+        item.setEstimatedCoins(BigDecimal.valueOf(request.getEstimatedGreenCoin()));
+        item.setImageUrl(request.getImageUrl());
+        item.setAiDetectionData(request.getAiDetectionData());
+        item.setAiConfidenceScore(BigDecimal.valueOf(request.getAiConfidenceScore()));
+        item.setStatus(ItemStatus.PENDING_USER_CONFIRMATION);
+
+        // 3️⃣ Calculate estimated coins if not manually given
+        if (item.getEstimatedCoins() == null) {
+            item.calculateEstimatedCoins();
+        }
+        
+        
+        // 4️⃣ Save
+        CartItem savedItem = cartItemRepository.save(item);
+        
+        cart.getItems().add(savedItem);
+        // 5️⃣ update cart info 
+        BigDecimal totalCoins = 
+         (cart.getTotalEstimatedCoins() == null ? BigDecimal.ZERO : cart.getTotalEstimatedCoins())
+        .add(savedItem.getEstimatedCoins() == null ? BigDecimal.ZERO : savedItem.getEstimatedCoins());
+        cart.setTotalEstimatedCoins(totalCoins);
+
+        BigDecimal updatedWeight = 
+        (cart.getTotalEstimatedWeight() == null ? BigDecimal.ZERO : cart.getTotalEstimatedWeight())
+        .add(savedItem.getEstimatedWeight() == null ? BigDecimal.ZERO : savedItem.getEstimatedWeight());
+        cart.setTotalEstimatedWeight(updatedWeight);
+
+        
+
+
+       return convertToResponse(cartRepository.save(cart));
     }
-    @Override
+
+   public  void confirmItemIdentification(Long cartId, Long itemId, boolean confirmed){
+        CartItem   item =cartItemRepository.findById(itemId).orElseThrow(()-> new ResourceNotFoundException("Cart item not found for id "+ itemId));
+        item.setStatus(ItemStatus.USER_CONFIRMED);
+       if( itemPreProcess.removeItemImg(item.getImageUrl())){
+            item.setImageUrl("img Removed Since User Confirmed");
+       }
+
+        cartItemRepository.save(item);
+    // We need to do nothing all default workes 
+
+    }
+
+    public void editAiDetectedItem(Long cartId, Long itemId, EditAiDetectionItemRequest  request) {
+        // 1️⃣ Fetch the item
+        CartItem item = cartItemRepository.findById(itemId)
+                .orElseThrow(() -> new ResourceNotFoundException("Cart item not found."));
+
+        // 2️⃣ Update item details
+        item.setStatus(ItemStatus.USER_EDITED);
+        item.setUserEdited(true);
+        item.setItemName(request.getItemName());
+        item.setMaterialType(request.getMaterialType());
+        item.setEstimatedWeight(request.getEstimatedWeight());
+
+        // 3️⃣ Recalculate estimated coins
+        item.calculateEstimatedCoins();
+
+        // 4️⃣ Save the item
+        cartItemRepository.save(item);
+
+        // 5️⃣ Update cart totals
+        Cart cart = item.getCart();
+        BigDecimal totalEstimatedWeight = BigDecimal.ZERO;
+        BigDecimal totalEstimatedCoins = BigDecimal.ZERO;
+
+        for (CartItem cartItem : cart.getItems()) {
+            totalEstimatedWeight = totalEstimatedWeight.add(
+                cartItem.getEstimatedWeight() == null ? BigDecimal.ZERO : cartItem.getEstimatedWeight()
+            );
+            totalEstimatedCoins = totalEstimatedCoins.add(
+                cartItem.getEstimatedCoins() == null ? BigDecimal.ZERO : cartItem.getEstimatedCoins()
+            );
+        }
+
+        cart.setTotalEstimatedWeight(totalEstimatedWeight);
+        cart.setTotalEstimatedCoins(totalEstimatedCoins);
+        mailService.notifyVendorManualChangeRequest(cart.getVendor().getEmail(),cart.getId().toString());
+        cartRepository.save(cart);
+    }
+
+   @Override
     public CartResponse removeItemFromCart(Long cartId, Long itemId, Long userId) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'removeItemFromCart'");
+        // 1️⃣ Fetch the cart
+        Cart cart = cartRepository.findById(cartId)
+                .orElseThrow(() -> new CartNotFound("Cart not found for id " + cartId));
+
+        // 2️⃣ Validate user ownership
+        if (!cart.getUser().getId().equals(userId)) {
+            throw new UnAuthorizedException("You are not authorized to modify this cart.");
+        }
+
+        // 3️⃣ Fetch the item
+        CartItem item = cartItemRepository.findById(itemId)
+                .orElseThrow(() -> new ResourceNotFoundException("Cart item not found for id " + itemId));
+
+        // 4️⃣ Ensure the item belongs to this cart
+        if (!item.getCart().getId().equals(cartId)) {
+            throw new IllegalArgumentException("Item does not belong to the given cart.");
+        }
+        //remove item Img in sorage 
+
+        itemPreProcess.removeItemImg(item.getImageUrl());
+        // 5️⃣ Remove the item
+        cart.getItems().remove(item);
+        cartItemRepository.delete(item);
+
+        // 6️⃣ Recalculate totals
+        BigDecimal newTotalWeight = BigDecimal.ZERO;
+        BigDecimal newTotalCoins = BigDecimal.ZERO;
+
+        for (CartItem remainingItem : cart.getItems()) {
+            newTotalWeight = newTotalWeight.add(
+                    remainingItem.getEstimatedWeight() == null ? BigDecimal.ZERO : remainingItem.getEstimatedWeight());
+            newTotalCoins = newTotalCoins.add(
+                    remainingItem.getEstimatedCoins() == null ? BigDecimal.ZERO : remainingItem.getEstimatedCoins());
+        }
+
+        cart.setTotalEstimatedWeight(newTotalWeight);
+        cart.setTotalEstimatedCoins(newTotalCoins);
+
+        // 7️⃣ Save and return updated cart
+        Cart updatedCart = cartRepository.save(cart);
+        return convertToResponse(updatedCart);
     }
+    
+    
     @Override
     public CartResponse requestPickup(RequestPickupRequest request, Long userId) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'requestPickup'");
+         // 1️⃣ Fetch the cart
+        Cart cart = cartRepository.findById(request.getCartId())
+                .orElseThrow(() -> new CartNotFound("Cart not found for id " + request.getCartId()));
+
+        // 2️⃣ Validate user ownership
+        if (!cart.getUser().getId().equals(userId)) {
+            throw new UnAuthorizedException("You are not authorized to modify this cart.");
+        }
+        //Send email to the Vendor 
+        mailService.notifyVendorPickupRequest(
+            cart.getVendor().getEmail(),
+            cart.getId().toString(),
+            cart.getUser().getName()
+        );
+        // update the Status 
+        cart.setStatus(CartStatus.PICKUP_REQUESTED);
+        return convertToResponse(cartRepository.save(cart));
     }
 
     // Vendor Services related to cart 
@@ -319,8 +477,9 @@ public class CartServiceImpl  implements CartService{
             throw new UnAuthorizedException("you are not authorize to make change in others cart ");     
         }   
         cart.setStatus(CartStatus.PICKUP_SCHEDULED);
-            cart.setUpdatedAt(LocalDateTime.now());
-            cart.setPickupScheduledAt(request.getEstimatedPickupTime());
+        cart.setUpdatedAt(LocalDateTime.now());
+        cart.setPickupScheduledAt(request.getEstimatedPickupTime());
+        mailService.notifyUserPickupScheduled(cart.getUser().getEmail(), cart.getVendor().getName(), request.getEstimatedPickupTime().toString());
           return convertToResponse(cartRepository.save(cart));   
     }
 
@@ -331,7 +490,7 @@ public class CartServiceImpl  implements CartService{
         if(cart.getVendor().getId() != vendorId ) {
             throw new UnAuthorizedException("you are not authorize to make change in others cart ");     
         }   
-
+        mailService.notifyUserCartRejectedByVendor(cart.getUser().getEmail(), cart.getVendor().getId().toString(), reason);
         cart.setStatus(CartStatus.REJECTED);
             cart.setUpdatedAt(LocalDateTime.now());
             cart.setCancelledByUserId(vendorId);
@@ -380,15 +539,18 @@ public class CartServiceImpl  implements CartService{
         Cart cart = cartRepository.findById(cartId).orElseThrow(()-> new CartNotFound("Cart With id not found "+ cartId));
             cart.setStatus(CartStatus.COMPLETED);
             cart.setUpdatedAt(LocalDateTime.now());
+        if (cart.getUser() != null && cart.getUser().getEmail() != null) {
+         mailService.notifyUserCartCompleted(cart.getUser().getEmail(), cartId.toString());
+        }
             return convertToResponse(cartRepository.save(cart));
     }
-
 
     @Override
     public CartResponse updateCartStatus(Long cartId, CartStatus newStatus, String notes, Long changedBy) {
        Cart cart = cartRepository.findById(cartId).orElseThrow(()-> new CartNotFound("Cart not found for id "+cartId));
         cart.setStatus(newStatus);
         cart.setUpdatedAt(LocalDateTime.now());
+        mailService.notifyUserCartStatusChange(cart.getUser().getEmail(), cartId.toString(), newStatus.name(), notes);
         return convertToResponse(cartRepository.save(cart));
     }
 
@@ -414,10 +576,21 @@ public class CartServiceImpl  implements CartService{
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'autoAssignVendor'");
     }
+
     @Override
     public void recalculateCartTotals(Long cartId) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'recalculateCartTotals'");
+        Cart cart = getCartEntity(cartId);
+        BigDecimal totalWeight = BigDecimal.ZERO;
+        BigDecimal totalCoins = BigDecimal.ZERO;
+
+        for (CartItem item : cart.getItems()) {
+            totalWeight = totalWeight.add(item.getEstimatedWeight() == null ? BigDecimal.ZERO : item.getEstimatedWeight());
+            totalCoins = totalCoins.add(item.getEstimatedCoins() == null ? BigDecimal.ZERO : item.getEstimatedCoins());
+        }
+
+        cart.setTotalEstimatedWeight(totalWeight);
+        cart.setTotalEstimatedCoins(totalCoins);
+        cartRepository.save(cart);
     }
 
     @Override
@@ -458,11 +631,11 @@ public class CartServiceImpl  implements CartService{
         response.setPickupInstructions(cart.getPickupInstructions());
         response.setVendorNotes(cart.getVendorNotes());
 
-        // Latitude & Longitude (convert Double → Long safely)
+        // Latitude & Longitude (convert Double)
         if (cart.getPickupLatitude() != null)
-            response.setLattiude(cart.getPickupLatitude().longValue());
+            response.setLattiude(cart.getPickupLatitude());
         if (cart.getPickupLongitude() != null)
-            response.setLogitude(cart.getPickupLongitude().longValue());
+            response.setLogitude(cart.getPickupLongitude());
 
         // Vendor & pickup assistant
         if (cart.getVendor() != null)
@@ -536,8 +709,5 @@ public class CartServiceImpl  implements CartService{
 
         return res;
     }
-
-
-
-    
+   
 }

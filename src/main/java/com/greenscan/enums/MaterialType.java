@@ -47,7 +47,7 @@ public enum MaterialType {
     GLASS_CONTAINER("Glass Bottles and Jars", 64.0), // (8.0 * 0.8) * 10
 
     // --- Special/Zero-Value Items ---
-    E_WASTE("Electronic Waste", 160.0), // (20.0 * 0.8) * 10 - Based on mixed e-waste value
+    E_WASTE("Electronic Waste", 260.0), // (20.0 * 0.8) * 10 - Based on mixed e-waste value
     TEXTILE("Fabric, Clothing, or Textiles", 32.0), // (4.0 * 0.8) * 10 - Nominal value for fiber recycling
     ORGANIC("Organic Matter (Compost)", 0.0); // Zero value for collection (may incur costs)
 
