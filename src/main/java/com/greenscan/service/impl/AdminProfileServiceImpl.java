@@ -24,7 +24,8 @@ public class AdminProfileServiceImpl implements AdminProfileService {
     private VendorProfileRepository vendorProfileRepository;
     @Autowired
     private CloudinaryService cloudinaryService;
-
+    @Autowired
+    private MailService mailService;
 
     public VendorProfileAdminViewResponse mapVendorWithKyc(VendorProfile vendor) {
         if (vendor == null) return null;
@@ -75,6 +76,7 @@ public class AdminProfileServiceImpl implements AdminProfileService {
         vendor.setApprovedByAdminId(adminId);
         vendor.setKycVerified(true);
         vendorProfileRepository.save(vendor);
+        mailService.notifyVendorProfileApproved(vendor.getUser().getEmail(), vendor.getUser().getName());
         return "Vendor profile approved successfully";
     }
 
@@ -88,6 +90,7 @@ public class AdminProfileServiceImpl implements AdminProfileService {
         vendor.setApprovedByAdminId(adminId);
         vendor.setKycVerified(false);
         vendorProfileRepository.save(vendor);
+        mailService.notifyVendorProfileRejected(vendor.getUser().getEmail(), vendor.getUser().getName(), reason);
         return "Vendor profile rejected successfully";
        
     }
@@ -100,6 +103,7 @@ public class AdminProfileServiceImpl implements AdminProfileService {
         vendor.setIsActive(false);
         vendor.setRejectionReason(reason);
         vendorProfileRepository.save(vendor);
+        mailService.notifyVendorProfileBlocked(vendor.getUser().getEmail(), vendor.getUser().getName(), reason);
         return "Vendor profile blocked successfully";
     }
 
@@ -112,6 +116,7 @@ public class AdminProfileServiceImpl implements AdminProfileService {
         vendor.setIsActive(true);
         vendor.setRejectionReason("Unblocked: " + reason);
         vendorProfileRepository.save(vendor);
+        mailService.notifyVendorProfileUnblocked(vendor.getUser().getEmail(), vendor.getUser().getName(), reason);
         return "Vendor profile unblocked successfully";
     }
 
@@ -141,5 +146,7 @@ public class AdminProfileServiceImpl implements AdminProfileService {
         .collect(Collectors.toList());
        
     }
+
+
     
 }

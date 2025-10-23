@@ -64,38 +64,9 @@ public class MailService {
     }
 
     // -------------------------------------------------------
-    // 🔹 Notification Methods
+    // 🔹  END USer Notification Methods
     // -------------------------------------------------------
 
-    public void notifyVendorPickupRequest(String vendorEmail, String cartId, String userName) {
-        String title = "New Pickup Request!";
-        String msg = "Dear Vendor, you have received a new pickup request from <b>" + userName + "</b> for cart ID <b>" + cartId + "</b>. Please confirm it at your earliest convenience.";
-        sendHtmlMail(vendorEmail, title, buildHtmlEmail(title, msg, "Cart ID: " + cartId));
-    }
-
-    public void notifyVendorAssignAssistant(String vendorEmail, String assistantName, String cartId) {
-        String title = "Assistant Assigned!";
-        String msg = "You have assigned <b>" + assistantName + "</b> to pickup cart ID <b>" + cartId + "</b>.";
-        sendHtmlMail(vendorEmail, title, buildHtmlEmail(title, msg, assistantName));
-    }
-
-    public void notifyVendorAssistantReached(String vendorEmail, String assistantName, String userAddress) {
-        String title = "Assistant Reached Pickup Location!";
-        String msg = "Your assistant <b>" + assistantName + "</b> has reached the user’s location: <b>" + userAddress + "</b>.";
-        sendHtmlMail(vendorEmail, title, buildHtmlEmail(title, msg, assistantName));
-    }
-
-    public void notifyVendorAssistantAtShop(String vendorEmail, String assistantName) {
-        String title = "Assistant Arrived at Shop!";
-        String msg = "Your assistant <b>" + assistantName + "</b> has arrived back at your shop with the collected items.";
-        sendHtmlMail(vendorEmail, title, buildHtmlEmail(title, msg, assistantName));
-    }
-
-    public void notifyVendorManualChangeRequest(String vendorEmail, String cartId) {
-        String title = "Manual Change Requested";
-        String msg = "Please review and confirm the manual changes made to cart ID <b>" + cartId + "</b> before final approval.";
-        sendHtmlMail(vendorEmail, title, buildHtmlEmail(title, msg, "Cart ID: " + cartId));
-    }
 
     public void notifyUserPickupScheduled(String userEmail, String vendorName, String pickupTime) {
         String title = "Pickup Scheduled!";
@@ -119,12 +90,6 @@ public class MailService {
         String title = "Actual Weight & Coins Updated";
         String msg = "The actual weight of your recyclables is <b>" + actualWeight + " kg</b>, and you have earned <b>" + actualCoins + " coins</b>.";
         sendHtmlMail(userEmail, title, buildHtmlEmail(title, msg, actualWeight + " kg / " + actualCoins + " Coins"));
-    }
-
-    public void notifyVendorAssignedToCart(String vendorEmail, String cartId) {
-        String title = "New Cart Assigned!";
-        String msg = "A new cart (ID: <b>" + cartId + "</b>) has been assigned to you. Please check your dashboard for details.";
-        sendHtmlMail(vendorEmail, title, buildHtmlEmail(title, msg, "Cart ID: " + cartId));
     }
 
     public void notifyUserCartRejectedByVendor(String userEmail, String vendorName, String reason) {
@@ -177,5 +142,92 @@ public class MailService {
         buildHtmlEmail(title, msg, "Status: Completed ✅")
     );
 }
+
+// -------------------------------------------------------
+// 🔹 Vendor Profile Notification Mails (Admin Actions)
+// -------------------------------------------------------
+
+public void notifyVendorProfileApproved(String vendorEmail, String vendorName) {
+    String title = "🎉 Vendor Profile Approved!";
+    String msg = "Dear <b>" + vendorName + "</b>, your vendor profile has been <b>approved</b> by our admin team."
+            + "<br><br>You can now start accepting recycling pickups and managing your dashboard."
+            + "<br><br>Welcome to <b>GreenScan Vendor Network</b>!";
+    sendHtmlMail(vendorEmail, title, buildHtmlEmail(title, msg, "Status: Approved ✅"));
+}
+
+public void notifyVendorProfileRejected(String vendorEmail, String vendorName, String reason) {
+    String title = "❌ Vendor Profile Rejected";
+    String msg = "Dear <b>" + vendorName + "</b>, unfortunately your vendor profile has been <b>rejected</b> by our admin team.";
+    
+    if (reason != null && !reason.isBlank()) {
+        msg += "<br><br><b>Reason:</b> " + reason;
+    } else {
+        msg += "<br><br><b>Reason:</b> Not specified.";
+    }
+
+    msg += "<br><br>You can review and update your submitted details, then reapply for approval.";
+
+    sendHtmlMail(vendorEmail, title, buildHtmlEmail(title, msg, "Status: Rejected ❌"));
+}
+
+public void notifyVendorProfileBlocked(String vendorEmail, String vendorName, String reason) {
+    String title = "🚫 Vendor Account Blocked";
+    String msg = "Dear <b>" + vendorName + "</b>, your vendor profile has been <b>blocked</b> due to policy or activity concerns.";
+
+    if (reason != null && !reason.isBlank()) {
+        msg += "<br><br><b>Reason:</b> " + reason;
+    } else {
+        msg += "<br><br><b>Reason:</b> Not provided.";
+    }
+
+    msg += "<br><br>If you believe this was a mistake, please contact GreenScan support.";
+
+    sendHtmlMail(vendorEmail, title, buildHtmlEmail(title, msg, "Status: Blocked 🚫"));
+}
+
+public void notifyVendorProfileUnblocked(String vendorEmail, String vendorName, String reason) {
+    String title = "✅ Vendor Account Unblocked";
+    String msg = "Good news <b>" + vendorName + "</b>! Your vendor profile has been <b>unblocked</b> and reactivated."
+            + "<br><br><b>Reason:</b> " + reason
+            + "<br><br>You can now continue your operations normally on <b>GreenScan</b>.";
+
+    sendHtmlMail(vendorEmail, title, buildHtmlEmail(title, msg, "Status: Active ✅"));
+}
+
+    public void notifyVendorPickupRequest(String vendorEmail, String cartId, String userName) {
+        String title = "New Pickup Request!";
+        String msg = "Dear Vendor, you have received a new pickup request from <b>" + userName + "</b> for cart ID <b>" + cartId + "</b>. Please confirm it at your earliest convenience.";
+        sendHtmlMail(vendorEmail, title, buildHtmlEmail(title, msg, "Cart ID: " + cartId));
+    }
+
+    public void notifyVendorAssignAssistant(String vendorEmail, String assistantName, String cartId) {
+        String title = "Assistant Assigned!";
+        String msg = "You have assigned <b>" + assistantName + "</b> to pickup cart ID <b>" + cartId + "</b>.";
+        sendHtmlMail(vendorEmail, title, buildHtmlEmail(title, msg, assistantName));
+    }
+
+    public void notifyVendorAssistantReached(String vendorEmail, String assistantName, String userAddress) {
+        String title = "Assistant Reached Pickup Location!";
+        String msg = "Your assistant <b>" + assistantName + "</b> has reached the user’s location: <b>" + userAddress + "</b>.";
+        sendHtmlMail(vendorEmail, title, buildHtmlEmail(title, msg, assistantName));
+    }
+
+    public void notifyVendorAssistantAtShop(String vendorEmail, String assistantName) {
+        String title = "Assistant Arrived at Shop!";
+        String msg = "Your assistant <b>" + assistantName + "</b> has arrived back at your shop with the collected items.";
+        sendHtmlMail(vendorEmail, title, buildHtmlEmail(title, msg, assistantName));
+    }
+
+    public void notifyVendorManualChangeRequest(String vendorEmail, String cartId) {
+        String title = "Manual Change Requested";
+        String msg = "Please review and confirm the manual changes made to cart ID <b>" + cartId + "</b> before final approval.";
+        sendHtmlMail(vendorEmail, title, buildHtmlEmail(title, msg, "Cart ID: " + cartId));
+    }
+
+    public void notifyVendorAssignedToCart(String vendorEmail, String cartId) {
+        String title = "New Cart Assigned!";
+        String msg = "A new cart (ID: <b>" + cartId + "</b>) has been assigned to you. Please check your dashboard for details.";
+        sendHtmlMail(vendorEmail, title, buildHtmlEmail(title, msg, "Cart ID: " + cartId));
+    }
 
 }
