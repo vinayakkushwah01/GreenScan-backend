@@ -107,7 +107,6 @@ public class AdminProfileServiceImpl implements AdminProfileService {
         return "Vendor profile blocked successfully";
     }
 
-
     @Override
     public String unblockVendorsProfile(Long vendorId, String reason) {
         VendorProfile vendor = vendorProfileRepository.findById(vendorId)
@@ -146,7 +145,5 @@ public class AdminProfileServiceImpl implements AdminProfileService {
         .collect(Collectors.toList());
        
     }
-
-
-    
+  
 }

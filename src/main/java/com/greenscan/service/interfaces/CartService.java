@@ -19,7 +19,7 @@ public interface CartService {
     //    Create a new cart for the authenticated user
     CartResponse createCartCompletion(CreateCartRequest request, Long userId);
     //Create cart empty if youser directly add items 
-    CartResponse createCartEmpty(Long userId);
+    CartResponse createCartEmpty(Long userId ,Long vendorId);
     //check if cart info is completed or not 
     boolean checkCartInfoCompl(Long userId , Long cartId);
     //make cart info complete so further activity

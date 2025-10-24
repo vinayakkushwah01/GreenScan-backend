@@ -113,86 +113,86 @@ public class MailService {
     }
 
     public void notifyUserCartStatusChange(String userEmail, String cartId, String newStatus, String notes) {
-    String title = "Cart Status Updated!";
-    
-    String msg = "Dear user, the status of your cart (ID: <b>" + cartId + "</b>) has been updated to <b>" 
-            + newStatus + "</b>.";
+        String title = "Cart Status Updated!";
+        
+        String msg = "Dear user, the status of your cart (ID: <b>" + cartId + "</b>) has been updated to <b>" 
+                + newStatus + "</b>.";
 
-    if (notes != null && !notes.isBlank()) {
-        msg += "<br><br><b>Notes:</b> " + notes;
+        if (notes != null && !notes.isBlank()) {
+            msg += "<br><br><b>Notes:</b> " + notes;
+        }
+
+        msg += "<br><br>Thank you for using <b>GreenScan</b>. You can check your dashboard for more details.";
+
+        sendHtmlMail(
+            userEmail,
+            title,
+            buildHtmlEmail(title, msg, "Status: " + newStatus)
+        );
     }
 
-    msg += "<br><br>Thank you for using <b>GreenScan</b>. You can check your dashboard for more details.";
-
-    sendHtmlMail(
-        userEmail,
-        title,
-        buildHtmlEmail(title, msg, "Status: " + newStatus)
-    );
-}
-
     public void notifyUserCartCompleted(String userEmail, String cartId) {
-    String title = "Pickup Completed Successfully!";
-    String msg = "Dear user, your recycling cart (ID: <b>" + cartId + "</b>) has been successfully <b>completed</b>."
-               + "<br><br>Thank you for contributing towards a cleaner and greener environment with <b>GreenScan</b>!";
+        String title = "Pickup Completed Successfully!";
+        String msg = "Dear user, your recycling cart (ID: <b>" + cartId + "</b>) has been successfully <b>completed</b>."
+                + "<br><br>Thank you for contributing towards a cleaner and greener environment with <b>GreenScan</b>!";
 
-    sendHtmlMail(
-        userEmail,
-        title,
-        buildHtmlEmail(title, msg, "Status: Completed ✅")
-    );
-}
+        sendHtmlMail(
+            userEmail,
+            title,
+            buildHtmlEmail(title, msg, "Status: Completed ✅")
+        );
+    }
 
 // -------------------------------------------------------
 // 🔹 Vendor Profile Notification Mails (Admin Actions)
 // -------------------------------------------------------
 
-public void notifyVendorProfileApproved(String vendorEmail, String vendorName) {
-    String title = "🎉 Vendor Profile Approved!";
-    String msg = "Dear <b>" + vendorName + "</b>, your vendor profile has been <b>approved</b> by our admin team."
-            + "<br><br>You can now start accepting recycling pickups and managing your dashboard."
-            + "<br><br>Welcome to <b>GreenScan Vendor Network</b>!";
-    sendHtmlMail(vendorEmail, title, buildHtmlEmail(title, msg, "Status: Approved ✅"));
-}
-
-public void notifyVendorProfileRejected(String vendorEmail, String vendorName, String reason) {
-    String title = "❌ Vendor Profile Rejected";
-    String msg = "Dear <b>" + vendorName + "</b>, unfortunately your vendor profile has been <b>rejected</b> by our admin team.";
-    
-    if (reason != null && !reason.isBlank()) {
-        msg += "<br><br><b>Reason:</b> " + reason;
-    } else {
-        msg += "<br><br><b>Reason:</b> Not specified.";
+    public void notifyVendorProfileApproved(String vendorEmail, String vendorName) {
+        String title = "🎉 Vendor Profile Approved!";
+        String msg = "Dear <b>" + vendorName + "</b>, your vendor profile has been <b>approved</b> by our admin team."
+                + "<br><br>You can now start accepting recycling pickups and managing your dashboard."
+                + "<br><br>Welcome to <b>GreenScan Vendor Network</b>!";
+        sendHtmlMail(vendorEmail, title, buildHtmlEmail(title, msg, "Status: Approved ✅"));
     }
 
-    msg += "<br><br>You can review and update your submitted details, then reapply for approval.";
+    public void notifyVendorProfileRejected(String vendorEmail, String vendorName, String reason) {
+        String title = "❌ Vendor Profile Rejected";
+        String msg = "Dear <b>" + vendorName + "</b>, unfortunately your vendor profile has been <b>rejected</b> by our admin team.";
+        
+        if (reason != null && !reason.isBlank()) {
+            msg += "<br><br><b>Reason:</b> " + reason;
+        } else {
+            msg += "<br><br><b>Reason:</b> Not specified.";
+        }
 
-    sendHtmlMail(vendorEmail, title, buildHtmlEmail(title, msg, "Status: Rejected ❌"));
-}
+        msg += "<br><br>You can review and update your submitted details, then reapply for approval.";
 
-public void notifyVendorProfileBlocked(String vendorEmail, String vendorName, String reason) {
-    String title = "🚫 Vendor Account Blocked";
-    String msg = "Dear <b>" + vendorName + "</b>, your vendor profile has been <b>blocked</b> due to policy or activity concerns.";
-
-    if (reason != null && !reason.isBlank()) {
-        msg += "<br><br><b>Reason:</b> " + reason;
-    } else {
-        msg += "<br><br><b>Reason:</b> Not provided.";
+        sendHtmlMail(vendorEmail, title, buildHtmlEmail(title, msg, "Status: Rejected ❌"));
     }
 
-    msg += "<br><br>If you believe this was a mistake, please contact GreenScan support.";
+    public void notifyVendorProfileBlocked(String vendorEmail, String vendorName, String reason) {
+        String title = "🚫 Vendor Account Blocked";
+        String msg = "Dear <b>" + vendorName + "</b>, your vendor profile has been <b>blocked</b> due to policy or activity concerns.";
 
-    sendHtmlMail(vendorEmail, title, buildHtmlEmail(title, msg, "Status: Blocked 🚫"));
-}
+        if (reason != null && !reason.isBlank()) {
+            msg += "<br><br><b>Reason:</b> " + reason;
+        } else {
+            msg += "<br><br><b>Reason:</b> Not provided.";
+        }
 
-public void notifyVendorProfileUnblocked(String vendorEmail, String vendorName, String reason) {
-    String title = "✅ Vendor Account Unblocked";
-    String msg = "Good news <b>" + vendorName + "</b>! Your vendor profile has been <b>unblocked</b> and reactivated."
-            + "<br><br><b>Reason:</b> " + reason
-            + "<br><br>You can now continue your operations normally on <b>GreenScan</b>.";
+        msg += "<br><br>If you believe this was a mistake, please contact GreenScan support.";
 
-    sendHtmlMail(vendorEmail, title, buildHtmlEmail(title, msg, "Status: Active ✅"));
-}
+        sendHtmlMail(vendorEmail, title, buildHtmlEmail(title, msg, "Status: Blocked 🚫"));
+    }
+
+    public void notifyVendorProfileUnblocked(String vendorEmail, String vendorName, String reason) {
+        String title = "✅ Vendor Account Unblocked";
+        String msg = "Good news <b>" + vendorName + "</b>! Your vendor profile has been <b>unblocked</b> and reactivated."
+                + "<br><br><b>Reason:</b> " + reason
+                + "<br><br>You can now continue your operations normally on <b>GreenScan</b>.";
+
+        sendHtmlMail(vendorEmail, title, buildHtmlEmail(title, msg, "Status: Active ✅"));
+    }
 
     public void notifyVendorPickupRequest(String vendorEmail, String cartId, String userName) {
         String title = "New Pickup Request!";

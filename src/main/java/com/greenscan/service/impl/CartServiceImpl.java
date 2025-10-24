@@ -101,15 +101,47 @@ public class CartServiceImpl  implements CartService{
        
     }
     @Override
-    public CartResponse createCartEmpty(Long userId) {
+    public CartResponse createCartEmpty(Long userId ,Long vendorId) {
         MainUser user = mainUserRepository.findById(userId)
             .orElseThrow(()->new ResourceNotFoundException("Main User not found for given id"));
         Cart cart = new Cart();
         cart.setUser(user);
         cart.setStatus(com.greenscan.enums.CartStatus.DRAFT);
+       MainUser vendor = null;
+        if (vendorId != null) {
+            VendorProfile vendorVendor = vendorProfileRepository.findById(vendorId)
+                .orElseThrow(() -> new ResourceNotFoundException("Vendor not found"));
+            vendor= vendorVendor.getUser();
+        }
+        cart.setVendor(vendor);
         // Generate unique cart number (you can replace this logic as needed)
         cart.setCartNumber("CART-" + System.currentTimeMillis());
         return convertToResponse( cartRepository.save(cart));
+    }
+
+    public CartResponse MakeCartSeduleForPickup(CreateCartRequest request, Long userId, Long cartId ){
+         MainUser user = mainUserRepository.findById(userId)
+        .orElseThrow(() ->new ResourceNotFoundException("User not found"));
+       
+        VendorProfile vendor = null;
+        if (request.getVendorId() != null) {
+            vendor = vendorProfileRepository.findById(request.getVendorId())
+                .orElseThrow(() -> new ResourceNotFoundException("Vendor not found"));
+        }
+        Cart cart = cartRepository.findById(cartId).orElseThrow(()->new  CartNotFound("cart not found for id "+cartId));
+        cart.setPickupInstructions(request.getPickupInstructions());
+        cart.setPickupAddressLine1(request.getPickupAddressLine1());
+        cart.setPickupAddressLine2(request.getPickupAddressLine2());
+        cart.setPickupCity(request.getPickupCity());
+        cart.setPickupPincode(request.getPickupPincode());
+        cart.setPickupLatitude(request.getPickupLatitude());
+        cart.setPickupLongitude(request.getPickupLongitude());
+        cart.setVendor(vendor.getUser());
+        cart.setStatus(CartStatus.PICKUP_REQUESTED);
+        CartResponse cartr =convertToResponse(cartRepository.save(cart));
+        recalculateCartTotals(cartId);
+        mailService.notifyVendorPickupRequest(vendor.getUser().getEmail(), cartId.toString(), user.getName());
+        return cartr;
     }
 
     @Override

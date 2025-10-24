@@ -47,8 +47,11 @@ public class CartAndItemController {
      * Maps to: POST /end_users/carts/empty?userId={userId}
      */
     @PostMapping("/empty")
-    public ResponseEntity<CartResponse> createCartEmpty(@RequestParam("userId") Long userId) {
-        CartResponse response = cartService.createCartEmpty(userId);
+    public ResponseEntity<CartResponse> createCartEmpty(
+        @RequestParam("userId") Long userId,
+        @RequestParam(value = "vendorId", required = false) Long vendorId
+        ) {
+        CartResponse response = cartService.createCartEmpty(userId ,vendorId);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
@@ -56,12 +59,13 @@ public class CartAndItemController {
      * Creates a fully initialized cart with provided details.
      * Maps to: POST /end_users/carts?userId={userId}
      */
-    @PostMapping
-    public ResponseEntity<CartResponse> createCartCompletion(
+    @PostMapping("/pickup-scheduling")
+    public ResponseEntity<CartResponse> MakeCartSeduleForPickup(
             @RequestBody CreateCartRequest request,
-            @RequestParam("userId") Long userId) {
+            @RequestParam("userId") Long userId,
+            @RequestParam("cartId") Long cartId) {
         
-        CartResponse response = cartService.createCartCompletion(request, userId);
+        CartResponse response = cartService.MakeCartSeduleForPickup(request, userId,cartId);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
@@ -200,4 +204,5 @@ public class CartAndItemController {
         return ResponseEntity.ok(carts);
     }
     
+
 }
