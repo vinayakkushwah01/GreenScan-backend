@@ -33,32 +33,32 @@ public class EndUserServiceImpl implements EndUserService {
         @Autowired
     private SupabaseStorageService supabaseStorageService;
 
-    @Override
-    @Transactional(readOnly = true)
-    public EndUserProfileResponse getEndUserProfile(Long userId) {
-        log.info("Fetching end user profile for userId: {}", userId);
-        
-        MainUser mainUser = mainUserRepository.findByIdAndIsActiveTrue(userId)
-            .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
-       
-        return getEndUserProfile(mainUser);
-    }
-
+    
     @Override
     @Transactional(readOnly = true)
     public EndUserProfileResponse getEndUserProfile(MainUser mainUser) {
         log.info("Fetching end user profile for user: {}", mainUser.getEmail());
         
         EndUserProfile profile = endUserProfileRepository.findByUserIdAndIsActiveTrue(mainUser.getId())
-            .orElseThrow(() -> new ResourceNotFoundException(
-                "EndUserProfile", "userId", mainUser.getId()
+        .orElseThrow(() -> new ResourceNotFoundException(
+            "EndUserProfile", "userId", mainUser.getId()
             ));
-        
-        return mapToResponse(profile);
-    }
+            
+            return mapToResponse(profile);
+        }
     @Override
-     @Transactional
-    public EndUserProfileResponse createEndUserProfile( EndUserProfileRequest request) {
+    @Transactional(readOnly = true)
+    public EndUserProfileResponse getEndUserProfile(Long userId) {
+            log.info("Fetching Main  user profile for userId: {}", userId);
+            
+            MainUser mainUser = mainUserRepository.findByIdAndIsActiveTrue(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
+           
+            return getEndUserProfile(mainUser);
+        }
+        @Override
+        @Transactional
+        public EndUserProfileResponse createEndUserProfile( EndUserProfileRequest request) {
         // Check if profile already exist
        MainUser mainUser = mainUserRepository.findByIdAndIsActiveTrue(request.getMainUserId())
                     .orElseThrow(()-> new ResourceNotFoundException("User", "id", request.getMainUserId()));

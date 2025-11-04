@@ -106,7 +106,7 @@ public class ItemPreProcess {
 
             return addItemRequest;
         }catch(Exception e ){
-           throw new  UnknownError("Unknowa erorr") ;
+           throw new  UnknownError("Unknowa erorr "+e.getLocalizedMessage()) ;
         }
 
 

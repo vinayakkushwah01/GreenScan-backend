@@ -33,4 +33,6 @@ public interface VendorProfileRepository extends JpaRepository<VendorProfile, Lo
     
     long countByApprovalStatusAndIsActiveTrue(ApprovalStatus status);
     Optional<VendorProfile> findByUserId(Long mainUserId);
+    List<VendorProfile> findByBusinessNameContainingIgnoreCaseAndApprovalStatusAndIsActiveTrue(
+        String name, ApprovalStatus status);
 }

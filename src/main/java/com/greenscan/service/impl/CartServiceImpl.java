@@ -431,6 +431,14 @@ public class CartServiceImpl  implements CartService{
         cartRepository.save(cart);
     }
 
+    public List<CartItemResponse> getAllCartItems(Long cartId){
+        Cart c = cartRepository.findById(cartId).orElseThrow(()-> new CartNotFound("cart not found for id "+ cartId));
+        
+    return c.getItems().stream()
+        .map(CartItemResponse::fromEntity)
+        .toList();
+        
+    }
    @Override
     public CartResponse removeItemFromCart(Long cartId, Long itemId, Long userId) {
         // 1️⃣ Fetch the cart

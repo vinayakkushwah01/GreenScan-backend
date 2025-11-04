@@ -43,4 +43,26 @@ public class CartItemResponse {
         response.setCreatedAt(item.getCreatedAt());
         return response;
     }
+
+
+    public static CartItemResponse fromEntity(CartItem item) {
+    CartItemResponse response = new CartItemResponse();
+    response.setId(item.getId());
+    response.setItemName(item.getItemName());
+    response.setMaterialType(item.getMaterialType());
+    response.setEstimatedWeight(item.getEstimatedWeight());
+    response.setActualWeight(item.getActualWeight());
+    response.setEstimatedCoins(item.getEstimatedCoins());
+    response.setActualCoins(item.getActualCoins());
+    response.setIsRecyclable(item.getIsRecyclable());
+    response.setStatus(item.getStatus() != null ? item.getStatus().name() : null);
+    response.setImageUrl(item.getImageUrl());
+    response.setAiConfidenceScore(item.getAiConfidenceScore());
+    response.setUserEdited(item.getUserEdited());
+    response.setVendorNotes(item.getVendorNotes());
+    response.setRejectionReason(item.getRejectionReason());
+    response.setCreatedAt(item.getCreatedAt());
+    return response;
+}
+
 }

@@ -3,8 +3,10 @@ package com.greenscan.controller.EndUserOtherController;
 import com.greenscan.dto.request.CreateCartRequest;
 import com.greenscan.dto.request.EditAiDetectionItemRequest;
 import com.greenscan.dto.response.ApiResponse;
+import com.greenscan.dto.response.CartItemResponse;
 import com.greenscan.dto.response.CartResponse;
 import com.greenscan.dto.response.PagedResponse;
+import com.greenscan.entity.CartItem;
 import com.greenscan.enums.CartStatus;
 import com.greenscan.service.impl.CartServiceImpl;
 import com.greenscan.service.interfaces.CartService;
@@ -13,6 +15,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 import com.greenscan.exception.custom.FileUploadException;
+import com.greenscan.repository.CartItemRepository;
+
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.query.Param;
 import org.springframework.http.HttpStatus;
@@ -24,6 +28,9 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.List;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
 
 @RestController
 @RequestMapping("/end_users/carts") 
@@ -120,7 +127,7 @@ public class CartAndItemController {
     }
     
     // Confirms Ai detetcted Obj 
-     @PatchMapping("/{itemId}/confirm")
+     @PatchMapping("/{cartId}/{itemId}/confirm")
     public ResponseEntity<ApiResponse<String>> confirmItemIdentification(
             @PathVariable Long cartId,
             @PathVariable Long itemId,
@@ -134,7 +141,7 @@ public class CartAndItemController {
     }
    
     // Edit Ai detetcted Obj 
-    @PatchMapping("/{itemId}/edit")
+    @PatchMapping("{cartId}/{itemId}/edit")
     public ResponseEntity<ApiResponse<String>> editAiDetectedItem(
             @PathVariable Long cartId,
             @PathVariable Long itemId,
@@ -157,6 +164,13 @@ public class CartAndItemController {
                 new ApiResponse<>(true, "Item removed from cart successfully.", response)
         );
     }
+    // get all items in cart 
+    @GetMapping("/{cartId}/items/")
+    public ResponseEntity <List <CartItemResponse>> getAllItemsInCart(@PathVariable Long cartId ) {
+       return ResponseEntity.ok( cartService.getAllCartItems(cartId));
+
+    }
+    
 
     // --- 4. Cart Retrieval Endpoints ---
     

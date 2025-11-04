@@ -1,5 +1,6 @@
 package com.greenscan.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.greenscan.enums.CartStatus;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -102,6 +103,7 @@ public class Cart extends BaseEntity {
     private LocalDateTime cancelledAt;
 
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonManagedReference
     private List<CartItem> items = new ArrayList<>();
 
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
