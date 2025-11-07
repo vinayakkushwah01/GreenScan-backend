@@ -29,6 +29,7 @@ import com.greenscan.enums.ItemStatus;
 import com.greenscan.exception.custom.CartNotFound;
 import com.greenscan.exception.custom.ResourceNotFoundException;
 import com.greenscan.exception.custom.UnAuthorizedException;
+import com.greenscan.exception.custom.VendorNotSelectedException;
 import com.greenscan.repository.CartItemRepository;
 import com.greenscan.repository.CartRepository;
 import com.greenscan.repository.EndUserProfileRepository;
@@ -427,6 +428,8 @@ public class CartServiceImpl  implements CartService{
 
         cart.setTotalEstimatedWeight(totalEstimatedWeight);
         cart.setTotalEstimatedCoins(totalEstimatedCoins);
+        if(cart.getVendor() == null)
+             throw  new VendorNotSelectedException("First Select The vendor thain only you are able to update cart Item ");
         mailService.notifyVendorManualChangeRequest(cart.getVendor().getEmail(),cart.getId().toString());
         cartRepository.save(cart);
     }
@@ -438,6 +441,17 @@ public class CartServiceImpl  implements CartService{
         .map(CartItemResponse::fromEntity)
         .toList();
         
+    }
+
+    // Select Vendor For the cart 
+    public  CartResponse selectVendorForCart(Long cartId , Long vendorUserId, Long userId){
+        Cart c = cartRepository.findById(cartId).orElseThrow(()-> new CartNotFound("cart not found for id "+cartId));
+        if(c.getUser().getId() != userId) throw new UnAuthorizedException("You are Not Authorized to change others Cart");
+        VendorProfile v = vendorProfileRepository.findById(vendorUserId).orElseThrow(
+            ()-> new ResourceNotFoundException("Venor for giveen id not found"+ vendorUserId));
+        c.setVendor(v.getUser());
+       return  convertToResponse(cartRepository.save(c));
+
     }
    @Override
     public CartResponse removeItemFromCart(Long cartId, Long itemId, Long userId) {

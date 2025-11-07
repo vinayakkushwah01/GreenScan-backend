@@ -28,8 +28,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.List;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 
 
 @RestController
@@ -171,6 +169,15 @@ public class CartAndItemController {
 
     }
     
+    @PostMapping("/select-vendor")
+    public ResponseEntity<CartResponse> selectVendorForCart(
+            @RequestParam Long cartId,
+            @RequestParam Long vendorUserId,
+            @RequestParam Long userId) {
+
+        CartResponse response = cartService.selectVendorForCart(cartId, vendorUserId, userId);
+        return ResponseEntity.ok(response);
+    }
 
     // --- 4. Cart Retrieval Endpoints ---
     
