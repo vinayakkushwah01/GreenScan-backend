@@ -40,6 +40,9 @@ public class CartAndItemController {
         try (FileOutputStream fos = new FileOutputStream(convFile)) {
             fos.write(file.getBytes());
         }
+        catch(Exception e ){
+            System.err.println("Errro in converting file from multipart to file");
+        }
         return convFile;
     }
 

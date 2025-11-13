@@ -106,7 +106,7 @@ public class ItemPreProcess {
 
             return addItemRequest;
         }catch(Exception e ){
-           throw new  UnknownError("Unknowa erorr "+e.getLocalizedMessage()) ;
+           throw new  UnknownError("Unknowa erorr Error found in Ai item deetection data Extraction  "+e.getLocalizedMessage()) ;
         }
 
 
