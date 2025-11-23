@@ -3,6 +3,7 @@ package com.greenscan.controller;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.HashMap;
 
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +14,8 @@ import org.springframework.web.multipart.MultipartFile;
 import com.greenscan.dto.request.EndUserProfileRequest;
 import com.greenscan.dto.response.ApiResponse;
 import com.greenscan.dto.response.EndUserProfileResponse;
+import com.greenscan.dto.response.UserProfileResposnse;
+import com.greenscan.dto.response.UserResponse;
 import com.greenscan.entity.MainUser;
 import com.greenscan.exception.custom.FileUploadException;
 import com.greenscan.service.impl.EndUserServiceImpl;
@@ -32,6 +35,16 @@ public class EndUserProfileController {
     public ResponseEntity<ApiResponse<EndUserProfileResponse>> getMyProfile(@PathVariable Long id ) {
         EndUserProfileResponse profile = endUserService.getEndUserProfile(id);
         return ResponseEntity.ok(ApiResponse.success("Profile retrieved successfully", profile));
+    }
+    @GetMapping("/user/{id}")
+    public ResponseEntity<ApiResponse<HashMap<String, Object>>> getMainUserProfile(@PathVariable Long id ) {
+         UserResponse profile = endUserService.getEndUserFullProfile(id);
+         EndUserProfileResponse endUserprofile = endUserService.getEndUserProfile(id);
+         HashMap<String, Object> responseData = new HashMap<>();
+        responseData.put("mainUserProfile", profile);
+        responseData.put("endUserProfile", endUserprofile);
+
+        return ResponseEntity.ok(ApiResponse.success("Profile retrieved successfully", responseData));
     }
 
     // Get profile by user ID (Admin only)

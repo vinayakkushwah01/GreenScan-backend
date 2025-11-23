@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import com.greenscan.dto.request.EndUserProfileRequest;
 import com.greenscan.dto.response.EndUserProfileResponse;
+import com.greenscan.dto.response.UserResponse;
 import com.greenscan.entity.EndUserProfile;
 import com.greenscan.entity.MainUser;
 import com.greenscan.exception.custom.FileUploadException;
@@ -135,6 +136,12 @@ public class EndUserServiceImpl implements EndUserService {
         response.setEcoScore(profile.getEcoScore());
        // response.setReferralCode(profile.getReferralCode());
         return response;
+    }
+    public UserResponse getEndUserFullProfile(Long id){
+    MainUser mainUser = mainUserRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("EndUserProfile", "id", id));
+        return UserResponse.fromMainUser(mainUser);
+        
     }
 
 
