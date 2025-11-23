@@ -23,6 +23,7 @@ import com.greenscan.entity.Cart;
 import com.greenscan.entity.CartItem;
 import com.greenscan.entity.CartStatusHistory;
 import com.greenscan.entity.MainUser;
+import com.greenscan.entity.PickupAssistant;
 import com.greenscan.entity.VendorProfile;
 import com.greenscan.enums.CartStatus;
 import com.greenscan.enums.ItemStatus;
@@ -34,6 +35,7 @@ import com.greenscan.repository.CartItemRepository;
 import com.greenscan.repository.CartRepository;
 import com.greenscan.repository.EndUserProfileRepository;
 import com.greenscan.repository.MainUserRepository;
+import com.greenscan.repository.PickupAssistantRepository;
 import com.greenscan.repository.VendorProfileRepository;
 import com.greenscan.service.interfaces.CartService;
 
@@ -48,6 +50,8 @@ public class CartServiceImpl  implements CartService{
     private final ItemPreProcess itemPreProcess;
     private final CartItemRepository cartItemRepository;
     private final MailService mailService;
+    private final PickupAssistantRepository pickupAssistantRepository;
+
     
 
 
@@ -554,30 +558,49 @@ public class CartServiceImpl  implements CartService{
     
     }
     
-   //we need to remove this method  
+    
     @Override
-    public CartResponse assignPickupAssistant(Long cartId, Long assistantId, Long vendorId) {
-        
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'assignPickupAssistant'");
+    public CartResponse assignPickupAssistant(Long cartId, Long pickupAstMainUserId, Long vendorId) {
+          Cart cart = cartRepository.findById(cartId).orElseThrow(()-> new CartNotFound("Cart not found for id "+cartId));
+        if(cart.getVendor().getId() != vendorId ) {
+            throw new UnAuthorizedException("you are not authorize to make change in others cart ");     
+        }   
+         PickupAssistant assist = pickupAssistantRepository.findByUserIdAndIsActiveTrue(pickupAstMainUserId).get();
+        cart.setPickupAssistant(assist.getUser());
+        return convertToResponse(cartRepository.save(cart));
     }
-
     //Assistant Service related to cart 
 
     @Override
-    public CartResponse startPickup(Long cartId, Long assistantId) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'startPickup'");
+    public CartResponse startPickup(Long cartId, Long assistantMainUserId) {
+        Cart cart = cartRepository.findById(cartId).orElseThrow(()-> new CartNotFound("Cart not found for id "+cartId));
+        if(cart.getPickupAssistant().getId()!= assistantMainUserId ) {
+            throw new UnAuthorizedException("you are not authorize to make change in others cart ");     
+        }  
+        cart.setPickupStartedAt(LocalDateTime.now());
+        return convertToResponse(cartRepository.save(cart));
+
     }
     @Override
-    public CartResponse completePickup(Long cartId, Long assistantId) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'completePickup'");
+    public CartResponse completePickup(Long cartId, Long assistantMainUserId) {
+        Cart cart = cartRepository.findById(cartId).orElseThrow(()-> new CartNotFound("Cart not found for id "+cartId));
+        if(cart.getPickupAssistant().getId()!= assistantMainUserId ) {
+            throw new UnAuthorizedException("you are not authorize to make change in others cart ");     
+        }  
+        cart.setPickupCompletedAt(LocalDateTime.now());
+        cart.setStatus(CartStatus.COLLECTED);
+         mailService.notifyUserCartStatusChange(cart.getUser().getEmail(), cartId.toString(), "COLLECTED", "cart COLLECTED by Pickup Assistant");
+
+        return convertToResponse(cartRepository.save(cart));
+
     }
+
     @Override
     public CartResponse markAsCollected(Long cartId, Long vendorId) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'markAsCollected'");
+      Cart cart = cartRepository.findById(cartId).orElseThrow(()-> new CartNotFound("Cart not found for id "+cartId));
+      cart.setStatus(CartStatus.COMPLETED); 
+    mailService.notifyUserCartStatusChange(cart.getUser().getEmail(), cartId.toString(), "COMPLETED", "cart Completed by Pickup Assistant");
+      return convertToResponse(cartRepository.save(cart));
     }
 
 

@@ -81,5 +81,15 @@ public class VendorCartController {
         return ResponseEntity.ok(cartService.getPendingPickupsForVendor(vendorId));
     }
 
+    //Assig Assiatent 
+    @PutMapping("/{vendorId}/assign-pickup-assistant")
+    public ResponseEntity<CartResponse> assignPickupAssistant(
+        @RequestParam Long cartId,
+        @RequestParam Long pickupAssistantUserId,
+        @PathVariable Long vendorId) {
+
+        CartResponse response = cartService.assignPickupAssistant(cartId, pickupAssistantUserId, vendorId);
+        return ResponseEntity.ok(response);
+    }
 
 }
