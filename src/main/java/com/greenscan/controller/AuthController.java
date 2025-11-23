@@ -1,12 +1,15 @@
 package com.greenscan.controller;
 
 import com.greenscan.dto.request.CompleteProfileRequest;
+import com.greenscan.dto.request.EndUserProfileRequest;
 import com.greenscan.dto.request.LoginRequest;
 import com.greenscan.dto.request.RegisterRequest;
 import com.greenscan.dto.response.AuthResponse;
+import com.greenscan.dto.response.EndUserProfileResponse;
 import com.greenscan.dto.response.StringResponse;
 import com.greenscan.dto.response.UserResponse;
 import com.greenscan.service.impl.AuthServiceImpl;
+import com.greenscan.service.impl.EndUserServiceImpl;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +29,8 @@ import jakarta.validation.Valid;
 public class AuthController {
 
     private final AuthServiceImpl authService;
+    private final  EndUserServiceImpl endUserService;
+
 
     /**
      * Endpoint for user registration.
@@ -41,6 +46,8 @@ public class AuthController {
         // The service handles password encryption, saving the user, and auto-logging in.
         AuthResponse authResponse = authService.register(request);
 
+           EndUserProfileResponse profile = endUserService.createEndUserProfile(new EndUserProfileRequest(authResponse.getUser().getId()));
+          
         // Registration is a creation action, so we return HTTP 201 Created.
         return new ResponseEntity<>(authResponse, HttpStatus.CREATED);
     }
